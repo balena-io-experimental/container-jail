@@ -1,0 +1,55 @@
+#!/bin/sh
+
+exec 1>/dev/console
+exec 2>/dev/console
+
+# Mount essential file systems
+if ! mountpoint -q /proc; then
+  mount -t proc none /proc
+fi
+
+if ! mountpoint -q /sys; then
+  mount -t sysfs none /sys
+fi
+
+if ! mountpoint -q /dev; then
+  mount -t devtmpfs none /dev
+fi
+
+if ! mountpoint -q /tmp; then
+  mount -t tmpfs none /tmp
+fi
+
+if ! mountpoint -q /run; then
+  mount -t tmpfs none /run
+fi
+
+# rngd -b
+
+# The IP is assigned by converting the last 4 hexa groups of the MAC into decimals.
+# https://github.com/firecracker-microvm/firecracker/blob/main/resources/overlay/usr/local/bin/fcnet-setup.sh
+for dev in $(ip link list | awk /'^[0-9]+:/ {print $2}' | sed 's/://'); do
+    dev="$(basename "$dev")"
+    case $dev in
+    *lo) continue ;;
+    esac
+    for octet in $(
+        ip link show dev "$dev" |
+            awk '/link\/ether/ {print $2}' |
+            awk -F: '{print $3" "$4" "$5" "$6}'
+    ); do
+        ip=$ip$(printf "%d" 0x"$octet").
+    done
+    ip=${ip%?}
+    ip addr add "$ip/30" dev "$dev"
+    ip link set "$dev" up
+    ip route add default via "${ip%?}1" dev "$dev"
+done
+
+# Export secrets to the environment and remove the files
+if [ "$(ls /var/secrets)" ]; then
+    for f in /var/secrets/*; do
+        eval "export $(basename "${f}")=$(cat "${f}")"
+        rm -f "${f}"
+    done
+fi

@@ -2,11 +2,61 @@ version: "2.4"
 
 services:
   sut:
-    build: .
-    image: localhost:5000/sut
-    privileged: true
-    tmpfs:
-      - /tmp
-      - /files
+    image: docker:stable
+    environment:
+      DOCKER_HOST: unix:///var/run/docker.sock
+      COMPOSE_PROJECT_NAME: ${COMPOSE_PROJECT_NAME:-ctr-jailer}
+      COMPOSE_FILE: docker-compose.yml:docker-compose.test.yml
+    depends_on:
+      - alpine-test
+      - debian-test
+      - ubuntu-test
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+      - ./:/usr/src/app:ro
+    working_dir: /usr/src/app
+    command:
+      - /bin/sh
+      - -c
+      - |
+        set -e
+        apk add --no-cache docker-compose
+
+        count=0
+        while [ "$$(docker-compose logs | grep "touch /mnt/data/healthy" | wc -l)" -lt 3 ]; do
+          if [ $$count -gt 10 ]; then
+            echo "Timed out waiting for 3 passed healthchecks"
+            exit 1
+          fi
+          sleep 5
+        done
+
+  alpine-test:
+    extends:
+      file: docker-compose.yml
+      service: firecracker
+    build:
+      context: .
+      target: alpine-test
+    command: /usr/local/bin/healthcheck.sh
+    volumes: []
+
+  debian-test:
+    extends:
+      file: docker-compose.yml
+      service: firecracker
+    build:
+      context: .
+      target: debian-test
+    command: /usr/local/bin/healthcheck.sh
+    volumes: []
+
+  ubuntu-test:
+    extends:
+      file: docker-compose.yml
+      service: firecracker
+    build:
+      context: .
+      target: ubuntu-test
+    command: /usr/local/bin/healthcheck.sh
+    volumes: []
