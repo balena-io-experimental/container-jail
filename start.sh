@@ -9,6 +9,14 @@ set -eu
 # Store the arguments in an array
 args=("$@")
 
+script_root="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
+overlay_src="${script_root}/overlay"
+rootfs_src="${script_root}/rootfs"
+config_src="${script_root}/config.json"
+
+boot_jail="/jail/boot"
+data_jail="/jail/data"
+
 # The jailer will use this id to create a unique chroot directory for the MicroVM
 # among other things.
 id="$(uuidgen)"
@@ -17,6 +25,14 @@ id="$(uuidgen)"
 # If this is detected as a tmpfs mount it will be remounted as rw,exec
 chroot_base="/srv/jailer"
 chroot_dir="${chroot_base}/firecracker/${id}/root"
+
+# Write all environment variables to a file in the overlay
+mkdir -p "${overlay_src}/var"
+env >"${overlay_src}/var/environment"
+# Remove environment variables that are not needed by the guest
+for key in PWD TERM USER SHLVL PATH HOME _; do
+    sed -e "/^${key}=/d" -i "${overlay_src}/var/environment"
+done
 
 is_tmpfs() {
     filesystem_type=$(stat -f -c '%T' "${1}")
@@ -33,23 +49,6 @@ remount_tmpfs_exec() {
         echo "Remounting ${1} with the execute bit set..."
         mount -o remount,rw,exec tmpfs /srv
     fi
-}
-
-write_ctr_secrets() {
-    echo "Writing secrets to rootfs..."
-
-    local secrets_root="${1}"
-
-    mkdir -p "${secrets_root}"
-
-    # Loop through all environment variables
-    for var in $(compgen -e); do
-        # Check if the variable starts with "CTR_"
-        if [[ $var == CTR_* ]]; then
-            # Remove the "CTR_" prefix and write the variable and its value to the secrets file
-            echo "${!var}" >"${secrets_root}/${var#CTR_}"
-        fi
-    done
 }
 
 populate_rootfs() {
@@ -73,19 +72,11 @@ populate_rootfs() {
 
     # alpine already has /sbin/init that we should replace, otherwise
     # we would probably use --ignore-existing as well
-    rsync -a --keep-dirlinks /usr/src/app/overlay/ "${rootfs_mnt}/"
+    rsync -a --keep-dirlinks "${overlay_src}"/ "${rootfs_mnt}"/
 
-    write_ctr_secrets "${rootfs_mnt}/var/secrets"
-
-    # Check that at least one arg was passed
-    if [ ${#args[@]} -eq 0 ]; then
-        # write the CMD to the end of the init script
-        echo "exec /usr/local/bin/usage.sh" >>"${rootfs_mnt}/sbin/init"
-    else
-        # write the CMD to the end of the init script
-        echo "Injecting CMD: ${args[*]}"
-        echo "exec ${args[*]}" >>"${rootfs_mnt}/sbin/init"
-    fi
+    # write the CMD to the end of the init script
+    echo "Injecting CMD: ${args[*]}"
+    echo "exec ${args[*]}" >>"${rootfs_mnt}/sbin/init"
 
     umount "${rootfs_mnt}"
 
@@ -204,8 +195,8 @@ cleanup() {
 }
 
 # Check for root filesystem
-if ! ls /usr/src/app/rootfs &>/dev/null; then
-    echo "Root Filesystem not found in /usr/src/app/rootfs. Did you forget to COPY it?"
+if ! ls "${rootfs_src}" &>/dev/null; then
+    echo "Root Filesystem not found in ${rootfs_src}. Did you forget to COPY it?"
     sleep infinity
 fi
 
@@ -288,15 +279,15 @@ create_tap_device "${tap_dev}" "${tap_ip}" "${short_netmask}"
 apply_routing "${tap_dev}" "${iface_id}"
 
 echo "Creating jailer chroot..."
-mkdir -p /jail/boot "${chroot_dir}"/boot
-mkdir -p /jail/data "${chroot_dir}"/data
+mkdir -p "${boot_jail}" "${chroot_dir}"/boot
+mkdir -p "${data_jail}" "${chroot_dir}"/data
 
-mount --bind /jail/boot "${chroot_dir}"/boot
-mount --bind /jail/data "${chroot_dir}"/data
+mount --bind "${boot_jail}" "${chroot_dir}"/boot
+mount --bind "${data_jail}" "${chroot_dir}"/data
 
-populate_rootfs /usr/src/app/rootfs "${chroot_dir}"/boot/rootfs.ext4
+populate_rootfs "${rootfs_src}" "${chroot_dir}"/boot/rootfs.ext4
 populate_datafs "${chroot_dir}"/data/datafs.ext4
-prepare_config /usr/src/app/config.json "${chroot_dir}"/boot/config.json
+prepare_config "${config_src}" "${chroot_dir}"/boot/config.json
 create_logs_fifo "${chroot_dir}"/logs.fifo /dev/stdout
 
 # /usr/local/bin/firecracker --help

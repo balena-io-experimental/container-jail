@@ -69,15 +69,16 @@ services:
   my-app:
     build: .
     # Privileged is required to setup the rootfs and jailer
-    # but permissions are dropped to a chroot in order to start your VM
+    # but permissions are dropped to non-root when starting Firecracker
     privileged: true
+    # Host networking is required to create a TAP device and update iptables
     network_mode: host
-    # Optionally run the VM rootfs and kernel in-memory to save storage wear
+    # Optionally run the VM rootfs and kernel in-memory
     tmpfs:
       - /tmp
       - /run
       - /srv
-    # Optionally mount a persistent data volume where a data drive will be created for the VM
+    # Optionally persist the data volume which is available as /dev/vdb in the VM
     volumes:
       - data:/jail/data
 
@@ -85,7 +86,7 @@ volumes:
   data: {}
 ```
 
-That's it! The firecracker runtime image will execute your rootfs as a MicroVM.
+That's it! The firecracker runtime image will execute your container as a MicroVM.
 
 Reference: <https://github.com/firecracker-microvm/firecracker/blob/main/docs/getting-started.md>
 
@@ -93,16 +94,10 @@ Reference: <https://github.com/firecracker-microvm/firecracker/blob/main/docs/ge
 
 ### Environment Variables
 
-Since traditional container environment variables are not available in the VM, this wrapper will
-inject them into the VM rootfs and export them at runtime.
+Environment variables made available to the jailer runtime will be written to `/var/environment` in
+the VM for optional use.
 
-Provide environment variables or secrets with the `CTR_` prefix, like `CTR_SECRET_KEY=secretvalue`.
-
-If the values have spaces, or special characters, it is recommended to encode your secret values
-with `base64` and have your init service decode them.
-
-After being exported to the running process, the files are removed so they can safely
-be used for secrets as long as the init stage of your service calls `unset <SECRET_KEY>` after using them.
+For use with secrets, it is recommended to source the values as needed, and delete the file.
 
 ### Networking
 
