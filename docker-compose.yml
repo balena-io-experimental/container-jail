@@ -3,13 +3,14 @@ version: "2.4"
 services:
   firecracker:
     build: .
+    # Privileged is required to setup the rootfs and jailer
+    # but permissions are dropped to a chroot in order to start your VM
     privileged: true
+    network_mode: host
+    # Optionally run the VM jail in-memory to save storage wear
     tmpfs:
       - /tmp
-    volumes:
-      - files:/files
-    labels:
-      io.balena.features.balena-socket: 1
-
-volumes:
-  files: {}
+      - /run
+      - /srv
+    environment:
+      - CTR_SECRET_KEY=secretvalue
