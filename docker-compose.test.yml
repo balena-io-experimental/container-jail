@@ -2,7 +2,7 @@ version: "2.4"
 
 services:
   sut:
-    image: docker:stable
+    image: alpine:3.18
     environment:
       DOCKER_HOST: unix:///var/run/docker.sock
       COMPOSE_PROJECT_NAME: ${COMPOSE_PROJECT_NAME:-ctr-jailer}
@@ -19,16 +19,27 @@ services:
       - /bin/sh
       - -c
       - |
-        set -e
-        apk add --no-cache docker-compose
+        set -ex
+        apk add --no-cache docker-cli-compose
 
         count=0
-        while [ "$$(docker-compose logs | grep "touch /mnt/data/healthy" | wc -l)" -lt 3 ]; do
+        while true; do
+
           if [ $$count -gt 10 ]; then
-            echo "Timed out waiting for 3 passed healthchecks"
+            echo "Timed out waiting for healthchecks to pass"
             exit 1
           fi
-          sleep 5
+
+          count=$$(($$count + 1))
+
+          sleep 3
+          
+          docker compose logs --no-color alpine-test | grep "touch /mnt/data/healthy" || continue
+          docker compose logs --no-color debian-test | grep "touch /mnt/data/healthy" || continue
+          docker compose logs --no-color ubuntu-test | grep "touch /mnt/data/healthy" || continue
+
+          break
+
         done
 
   alpine-test:
