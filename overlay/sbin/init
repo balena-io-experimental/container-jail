@@ -46,10 +46,7 @@ for dev in $(ip link list | awk /'^[0-9]+:/ {print $2}' | sed 's/://'); do
     ip route add default via "${ip%?}1" dev "$dev"
 done
 
-# Export secrets to the environment and remove the files
-if [ "$(ls /var/secrets)" ]; then
-    for f in /var/secrets/*; do
-        eval "export $(basename "${f}")=$(cat "${f}")"
-        rm -f "${f}"
-    done
-fi
+set +a
+# shellcheck disable=SC1091
+. /etc/profile || true
+set -a

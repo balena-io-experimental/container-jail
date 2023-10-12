@@ -12,5 +12,3 @@ services:
       - /tmp
       - /run
       - /srv
-    environment:
-      - CTR_SECRET_KEY=secretvalue

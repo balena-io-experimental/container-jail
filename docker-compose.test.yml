@@ -39,7 +39,6 @@ services:
       context: .
       target: alpine-test
     command: /usr/local/bin/healthcheck.sh
-    volumes: []
 
   debian-test:
     extends:
@@ -49,7 +48,6 @@ services:
       context: .
       target: debian-test
     command: /usr/local/bin/healthcheck.sh
-    volumes: []
 
   ubuntu-test:
     extends:
@@ -59,4 +57,3 @@ services:
       context: .
       target: ubuntu-test
     command: /usr/local/bin/healthcheck.sh
-    volumes: []
