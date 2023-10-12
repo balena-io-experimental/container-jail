@@ -1,4 +1,17 @@
 - commits:
+    - subject: Publish images to ghcr.io
+      hash: 2d7ede850822a1da2ee130ff0d53ee3c21a03ec3
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Kyle Harding <kyle@balena.io>
+        signed-off-by: Kyle Harding <kyle@balena.io>
+      author: Kyle Harding
+  version: 0.0.4
+  title: ""
+  date: 2023-10-12T19:07:20.763Z
+- commits:
     - subject: Write all env vars to a single file for convenience
       hash: 6add7f3d62a448ca56716eeeec9ff1eb726bd623
       body: |
