@@ -6,193 +6,157 @@
 
 set -eu
 
-# Store the arguments in an array
+populate_rootfs() {
+    echo "Populating rootfs..."
+
+    local _src_rootfs="${1}"
+    local _dst_rootfs="${2}"
+    local _rootfs_mnt="/tmp/rootfs"
+
+    mkdir -p "$(dirname "${_dst_rootfs}")"
+    rm -f "${_dst_rootfs}"
+
+    truncate -s "${ROOTFS_SIZE}" "${_dst_rootfs}"
+    mkfs.ext4 -q "${_dst_rootfs}"
+    mkdir -p "${_rootfs_mnt}"
+    mount "${_dst_rootfs}" "${_rootfs_mnt}"
+
+    rsync -a "${_src_rootfs}"/ "${_rootfs_mnt}"/
+    for dir in dev proc run sys var; do mkdir -p "${_rootfs_mnt}/${dir}"; done
+
+    # alpine already has /sbin/init that we should replace, otherwise
+    # we would probably use --ignore-existing as well
+    rsync -a --keep-dirlinks "${overlay_src}"/ "${_rootfs_mnt}"/
+
+    # write the CMD to the end of the init script
+    echo "Injecting COMMAND: ${args[*]}"
+    echo "exec ${args[*]}" >>"${_rootfs_mnt}/sbin/init"
+
+    umount "${_rootfs_mnt}"
+
+    chown firecracker:firecracker "${_dst_rootfs}"
+}
+
+populate_datafs() {
+
+    local _dst_datafs="${1}"
+
+    mkdir -p "$(dirname "${_dst_datafs}")"
+
+    if [ ! -f "${_dst_datafs}" ]; then
+        echo "Populating datafs..."
+        truncate -s "${DATAFS_SIZE}" "${_dst_datafs}"
+        mkfs.ext4 -q "${_dst_datafs}"
+        chown firecracker:firecracker "${_dst_datafs}"
+    fi
+}
+
+generate_config() {
+    echo "Generating Firecracker config file..."
+
+    local _src_config="${1}"
+    local _dst_config="${2}"
+
+    envsubst <"${_src_config}" >"${_dst_config}"
+
+    jq ".\"boot-source\".boot_args = \"${KERNEL_BOOT_ARGS}\"" "${_dst_config}" >"${_dst_config}".tmp
+    mv "${_dst_config}".tmp "${_dst_config}"
+
+    jq ".\"machine-config\".vcpu_count = ${VCPU_COUNT}" "${_dst_config}" >"${_dst_config}".tmp
+    mv "${_dst_config}".tmp "${_dst_config}"
+
+    jq ".\"machine-config\".mem_size_mib = ${MEM_SIZE_MIB}" "${_dst_config}" >"${_dst_config}".tmp
+    mv "${_dst_config}".tmp "${_dst_config}"
+
+    jq ".\"network-interfaces\"[0].iface_id = \"${GUEST_IFACE}\"" "${_dst_config}" >"${_dst_config}".tmp
+    mv "${_dst_config}".tmp "${_dst_config}"
+
+    jq ".\"network-interfaces\"[0].guest_mac = \"${GUEST_MAC}\"" "${_dst_config}" >"${_dst_config}".tmp
+    mv "${_dst_config}".tmp "${_dst_config}"
+
+    jq ".\"network-interfaces\"[0].host_dev_name = \"${TAP_DEVICE}\"" "${_dst_config}" >"${_dst_config}".tmp
+    mv "${_dst_config}".tmp "${_dst_config}"
+
+    # jq . "${_dst_config}"
+}
+
+setup_networking() {
+    local _tap_dev="${1}"
+    local _tap_cidr="${2}"
+    local _host_dev="${3}"
+
+    echo "Creating ${_tap_dev} device..."
+    # delete existing tap device
+    ip link del "${_tap_dev}" 2>/dev/null || true
+    # create tap device
+    ip tuntap add dev "${_tap_dev}" mode tap user firecracker
+    # ip tuntap add dev "${_tap_dev}" mode tap
+    ip addr add "${_tap_cidr}" dev "${_tap_dev}"
+    ip link set dev "${_tap_dev}" up
+
+    echo "Enabling IP forwarding..."
+    sysctl -w net.ipv4.ip_forward=1
+    # sysctl -w net.ipv4.conf.${_tap_dev}.proxy_arp=1
+    # sysctl -w net.ipv6.conf.${_tap_dev}.disable_ipv6=1
+
+    echo "Applying iptables rules..."
+    # delete rules matching comment
+    iptables-legacy-save | grep -v "comment ${_tap_dev}" | iptables-legacy-restore || true
+    # create FORWARD and POSTROUTING rules
+    iptables-legacy -t nat -A POSTROUTING -o "${_host_dev}" -j MASQUERADE -m comment --comment "${_tap_dev}"
+    # iptables-legacy -I FORWARD 1 -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT -m comment --comment "${_tap_dev}"
+    # iptables-legacy -I FORWARD 1 -i "${_tap_dev}" -o "${_host_dev}" -j ACCEPT -m comment --comment "${_tap_dev}"
+    iptables-legacy -A FORWARD -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT -m comment --comment "${_tap_dev}"
+    iptables-legacy -A FORWARD -i "${_tap_dev}" -o "${_host_dev}" -j ACCEPT -m comment --comment "${_tap_dev}"
+}
+
+normalize_cidr() {
+    local _address
+    local _short_netmask
+    local _long_netmask
+
+    _address="$(ipcalc -nb "${1}" | awk '/^Address:/ {print $2}')"
+    _long_netmask="$(ipcalc -nb "${1}" | awk '/^Netmask:/ {print $2}')"
+    _short_netmask="$(ipcalc -nb "${1}" | awk '/^Netmask:/ {print $4}')"
+
+    echo "${_address}/${_short_netmask}"
+}
+
+ip_to_mac() {
+    # shellcheck disable=SC2183,SC2046
+    printf '52:54:%02X:%02X:%02X:%02X\n' $(echo "${1}" | tr '.' ' ')
+}
+
+create_logs_fifo() {
+    local _fifo="${1}"
+    local _out="${2}"
+
+    mkdir -p "$(dirname "${_fifo}")"
+    rm -f "${_fifo}"
+
+    # Create a named pipe
+    mkfifo "${_fifo}"
+    # Redirect the output of the named pipe to /dev/stdout
+    cat "${_fifo}" >"${_out}" &
+    # Take ownership of the named pipe
+    chown firecracker:firecracker "${_fifo}"
+}
+
+cleanup() {
+    echo "Cleaning up..."
+    # delete tap device
+    ip link del "${TAP_DEVICE}" 2>/dev/null || true
+    # delete rules matching comment
+    iptables-legacy-save | grep -v "comment ${TAP_DEVICE}" | iptables-legacy-restore
+}
+
+# Store the script arguments in an array
 args=("$@")
 
 script_root="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 overlay_src="${script_root}/overlay"
 rootfs_src="${script_root}/rootfs"
 config_src="${script_root}/config.json"
-
-boot_jail="/jail/boot"
-data_jail="/jail/data"
-
-# The jailer will use this id to create a unique chroot directory for the MicroVM
-# among other things.
-id="$(uuidgen)"
-
-# The jailer will create a chroot directory for the MicroVM under this base directory
-# If this is detected as a tmpfs mount it will be remounted as rw,exec
-chroot_base="/srv/jailer"
-chroot_dir="${chroot_base}/firecracker/${id}/root"
-
-# Write all environment variables to a file in the overlay
-mkdir -p "${overlay_src}/var"
-env >"${overlay_src}/var/environment"
-# Remove environment variables that are not needed by the guest
-for key in PWD TERM USER SHLVL PATH HOME _; do
-    sed -e "/^${key}=/d" -i "${overlay_src}/var/environment"
-done
-
-is_tmpfs() {
-    filesystem_type=$(stat -f -c '%T' "${1}")
-    if [ "$filesystem_type" = "tmpfs" ]; then
-        return 0
-    else
-        return 1
-    fi
-}
-
-remount_tmpfs_exec() {
-    mkdir -p "${1}"
-    if is_tmpfs "${1}"; then
-        echo "Remounting ${1} with the execute bit set..."
-        mount -o remount,rw,exec tmpfs "${1}"
-    fi
-}
-
-populate_rootfs() {
-    echo "Populating rootfs..."
-
-    local src_rootfs="${1}"
-    local dst_rootfs="${2}"
-
-    local rootfs_mnt="/tmp/rootfs"
-
-    mkdir -p "$(dirname "${dst_rootfs}")"
-    rm -f "${dst_rootfs}"
-
-    truncate -s "${ROOTFS_SIZE}" "${dst_rootfs}"
-    mkfs.ext4 -q "${dst_rootfs}"
-    mkdir -p "${rootfs_mnt}"
-    mount "${dst_rootfs}" "${rootfs_mnt}"
-
-    rsync -a "${src_rootfs}"/ "${rootfs_mnt}"/
-    for dir in dev proc run sys var; do mkdir -p "${rootfs_mnt}/${dir}"; done
-
-    # alpine already has /sbin/init that we should replace, otherwise
-    # we would probably use --ignore-existing as well
-    rsync -a --keep-dirlinks "${overlay_src}"/ "${rootfs_mnt}"/
-
-    # write the CMD to the end of the init script
-    echo "Injecting CMD: ${args[*]}"
-    echo "exec ${args[*]}" >>"${rootfs_mnt}/sbin/init"
-
-    umount "${rootfs_mnt}"
-
-    chown firecracker:firecracker "${dst_rootfs}"
-}
-
-populate_datafs() {
-
-    local dst_datafs="${1}"
-
-    mkdir -p "$(dirname "${dst_datafs}")"
-
-    if [ ! -f "${dst_datafs}" ]; then
-        echo "Populating datafs..."
-        truncate -s "${DATAFS_SIZE}" "${dst_datafs}"
-        mkfs.ext4 -q "${dst_datafs}"
-        chown firecracker:firecracker "${dst_datafs}"
-    fi
-}
-
-prepare_config() {
-    echo "Preparing config..."
-
-    local src_config="${1}"
-    local dst_config="${2}"
-
-    envsubst <"${src_config}" >"${dst_config}"
-
-    jq ".\"boot-source\".boot_args = \"${KERNEL_BOOT_ARGS}\"" "${dst_config}" >"${dst_config}".tmp
-    mv "${dst_config}".tmp "${dst_config}"
-
-    jq ".\"machine-config\".vcpu_count = ${VCPU_COUNT}" "${dst_config}" >"${dst_config}".tmp
-    mv "${dst_config}".tmp "${dst_config}"
-
-    jq ".\"machine-config\".mem_size_mib = ${MEM_SIZE_MIB}" "${dst_config}" >"${dst_config}".tmp
-    mv "${dst_config}".tmp "${dst_config}"
-
-    jq ".\"network-interfaces\"[0].iface_id = \"eth0\"" "${dst_config}" >"${dst_config}".tmp
-    mv "${dst_config}".tmp "${dst_config}"
-
-    jq ".\"network-interfaces\"[0].guest_mac = \"${guest_mac}\"" "${dst_config}" >"${dst_config}".tmp
-    mv "${dst_config}".tmp "${dst_config}"
-
-    jq ".\"network-interfaces\"[0].host_dev_name = \"${tap_dev}\"" "${dst_config}" >"${dst_config}".tmp
-    mv "${dst_config}".tmp "${dst_config}"
-
-    # jq . "${dst_config}"
-}
-
-create_tap_device() {
-    local _tap_dev="${1}"
-    local _tap_ip_mask="${2}/${3}"
-
-    echo "Creating ${_tap_dev} device..."
-
-    # delete existing tap device
-    ip link del "${_tap_dev}" 2>/dev/null || true
-
-    # create tap device
-    ip tuntap add dev "${tap_dev}" mode tap user firecracker
-    # ip tuntap add dev "${_tap_dev}" mode tap
-    ip addr add "${_tap_ip_mask}" dev "${_tap_dev}"
-    ip link set dev "${_tap_dev}" up
-
-    sysctl -w net.ipv4.ip_forward=1
-    # sysctl -w net.ipv4.conf.${_tap_dev}.proxy_arp=1
-    # sysctl -w net.ipv6.conf.${_tap_dev}.disable_ipv6=1
-}
-
-apply_routing() {
-    local _tap_dev="${1}"
-    local _iface_id="${2}"
-
-    echo "Applying iptables rules..."
-
-    # delete rules matching comment
-    iptables-legacy-save | grep -v "comment ${_tap_dev}" | iptables-legacy-restore || true
-
-    # create FORWARD and POSTROUTING rules
-    iptables-legacy -t nat -A POSTROUTING -o "${_iface_id}" -j MASQUERADE -m comment --comment "${_tap_dev}"
-    # iptables-legacy -I FORWARD 1 -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT -m comment --comment "${_tap_dev}"
-    # iptables-legacy -I FORWARD 1 -i "${_tap_dev}" -o "${_iface_id}" -j ACCEPT -m comment --comment "${_tap_dev}"
-    iptables-legacy -A FORWARD -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT -m comment --comment "${_tap_dev}"
-    iptables-legacy -A FORWARD -i "${_tap_dev}" -o "${_iface_id}" -j ACCEPT -m comment --comment "${_tap_dev}"
-}
-
-ip_to_mac() {
-    local ip="${1}"
-    local mac
-    # shellcheck disable=SC2183,SC2046
-    mac="$(printf '52:54:%02X:%02X:%02X:%02X\n' $(echo "${ip}" | tr '.' ' '))"
-    echo "${mac}"
-}
-
-create_logs_fifo() {
-    local fifo="${1}"
-    local out="${2}"
-
-    mkdir -p "$(dirname "${fifo}")"
-    rm -f "${fifo}"
-
-    # Create a named pipe
-    mkfifo "${fifo}"
-    # Redirect the output of the named pipe to /dev/stdout
-    cat "${fifo}" >"${out}" &
-    # Take ownership of the named pipe
-    chown firecracker:firecracker "${fifo}"
-}
-
-cleanup() {
-    echo "Cleaning up..."
-    # delete tap device
-    ip link del "${tap_dev}" 2>/dev/null || true
-    # delete rules matching comment
-    iptables-legacy-save | grep -v "comment ${tap_dev}" | iptables-legacy-restore
-}
 
 # Check for root filesystem
 if ! ls "${rootfs_src}" &>/dev/null; then
@@ -239,10 +203,12 @@ if [ -z "${KERNEL_BOOT_ARGS:-}" ]; then
     fi
 fi
 
-# Network settings
+if [ -z "${HOST_IFACE:-}" ]; then
+    HOST_IFACE="$(ip route | awk '/default/ {print $5}')"
+fi
 
-if [ -z "${INTERFACE:-}" ]; then
-    INTERFACE="$(ip route | awk '/default/ {print $5}')"
+if [ -z "${GUEST_IFACE:-}" ]; then
+    GUEST_IFACE="net0"
 fi
 
 if [ -z "${TAP_IP:-}" ]; then
@@ -250,46 +216,76 @@ if [ -z "${TAP_IP:-}" ]; then
     TAP_IP=10.$((1 + RANDOM % 254)).$((1 + RANDOM % 254)).1/30
 fi
 
-iface_id="${INTERFACE}"
-tap_ip="$(ipcalc -nb "${TAP_IP}" | awk '/^Address:/ {print $2}')"
-# long_netmask="$(ipcalc -nb "${TAP_IP}" | awk '/^Netmask:/ {print $2}')"
-short_netmask="$(ipcalc -nb "${TAP_IP}" | awk '/^Netmask:/ {print $4}')"
+TAP_IP="$(normalize_cidr "${TAP_IP}")"
 
-# must be less than 16 characters
-# https://git.kernel.org/pub/scm/network/iproute2/iproute2.git/tree/lib/utils.c?id=1f420318bda3cc62156e89e1b56d60cc744b48ad#n827
-tap_dev="tap-${tap_ip//./-}"
-tap_dev="${tap_dev%??}"
-guest_mac="$(ip_to_mac "${tap_ip%?}2")"
+if [ -z "${TAP_DEVICE:-}" ]; then
+    # must be less than 16 characters
+    TAP_DEVICE="$(echo "${TAP_IP}" | awk -F'[./]' '{print "tap-"$1"-"$2"-"$3}')"
+fi
 
-echo "Host Interface: ${iface_id}"
-echo "Guest Address: ${guest_mac}"
-echo "TAP Device: ${tap_dev}"
+if [ -z "${GUEST_MAC:-}" ]; then
+    # Guest MAC is '52:54' followed by the first 3 octets of the TAP IP,
+    # followed by the last octet of the TAP IP incremented by 1.
+    GUEST_MAC="$(ip_to_mac "$(echo "${TAP_IP}" | awk -F'[./]' '{print $1"."$2"."$3"."$4+1}')")"
+fi
 
 echo "VCPUs: ${VCPU_COUNT}"
 echo "Memory: ${MEM_SIZE_MIB}M"
 echo "Root Drive (vda): ${ROOTFS_SIZE}"
 echo "Data Drive (vdb): ${DATAFS_SIZE}"
 echo "Kernel boot args: ${KERNEL_BOOT_ARGS}"
+echo "Host Interface: ${HOST_IFACE}"
+echo "Guest Interface: ${GUEST_IFACE}"
+echo "TAP Device ID: ${TAP_DEVICE}"
+echo "TAP IP Address: ${TAP_IP}"
+echo "Guest MAC Address: ${GUEST_MAC}"
 
 trap cleanup EXIT
 
-remount_tmpfs_exec "/tmp"
-remount_tmpfs_exec "/run"
-remount_tmpfs_exec "/srv"
+# Write all environment variables to a file in the overlay
+mkdir -p "${overlay_src}/var"
+# Quote all variables to prevent globbing and word splitting
+printenv | sed -e 's/=\(.*\)/="\1"/g' >"${overlay_src}/var/environment"
+# Remove environment variables that are not needed by the guest
+for key in PWD TERM USER SHLVL PATH HOME _; do
+    sed -e "/^${key}=/d" -i "${overlay_src}/var/environment"
+done
 
-create_tap_device "${tap_dev}" "${tap_ip}" "${short_netmask}"
-apply_routing "${tap_dev}" "${iface_id}"
+# Remount tmpfs mounts with the execute bit set
+for dir in /tmp /run /srv; do
+    mkdir -p "${dir}"
+    if [ "$(stat -f -c '%T' "${dir}")" = "tmpfs" ]; then
+        echo "Remounting ${dir} as rw,exec..."
+        mount -o remount,rw,exec tmpfs "${dir}"
+    fi
+done
+
+# The jailer will use this id to create a unique chroot directory for the MicroVM
+# among other things.
+id="$(uuidgen)"
+
+# These directories will be bind mounted to the chroot and can
+# optionally be replaced with volumes mounted by the user.
+boot_jail="/jail/boot"
+data_jail="/jail/data"
+
+# The jailer will use this directory as the base for the chroot directory
+chroot_base="/srv/jailer"
+chroot_dir="${chroot_base}/firecracker/${id}/root"
 
 echo "Creating jailer chroot..."
 mkdir -p "${boot_jail}" "${chroot_dir}"/boot
 mkdir -p "${data_jail}" "${chroot_dir}"/data
-
+# Bind mount /jail/boot and /jail/data to /boot and /data in the chroot.
+# This way users can mount their own volumes to /jail/boot and /jail/data
+# without needing to know the exact path of the chroot.
 mount --bind "${boot_jail}" "${chroot_dir}"/boot
 mount --bind "${data_jail}" "${chroot_dir}"/data
 
 populate_rootfs "${rootfs_src}" "${chroot_dir}"/boot/rootfs.ext4
 populate_datafs "${chroot_dir}"/data/datafs.ext4
-prepare_config "${config_src}" "${chroot_dir}"/boot/config.json
+setup_networking "${TAP_DEVICE}" "${TAP_IP}" "${HOST_IFACE}"
+generate_config "${config_src}" "${chroot_dir}"/boot/config.json
 create_logs_fifo "${chroot_dir}"/logs.fifo /dev/stdout
 
 # /usr/local/bin/firecracker --help

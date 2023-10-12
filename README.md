@@ -105,7 +105,7 @@ A TAP/TUN device will be automatically created for the guest to have network acc
 
 The IP address/netmask can be configured via `TAP_IP`, otherwise a random address in the 10.x.x.1/30 range will be assigned.
 
-The host interface for routing can be configured via `INTERFACE` otherwise the default route interface will be used.
+The host interface for routing can be configured via `HOST_IFACE` otherwise the default route interface will be used.
 
 In order to create the TAP device, and update iptables rules, the container jailer must be run in host networking mode.
 
