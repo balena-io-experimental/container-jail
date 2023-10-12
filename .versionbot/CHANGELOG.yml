@@ -1,4 +1,19 @@
 - commits:
+    - subject: Write all env vars to a single file for convenience
+      hash: 6add7f3d62a448ca56716eeeec9ff1eb726bd623
+      body: |
+        This removes the requirement to add a CTR_ prefix to any
+        existing env vars when migrating.
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Kyle Harding <kyle@balena.io>
+        signed-off-by: Kyle Harding <kyle@balena.io>
+      author: Kyle Harding
+  version: 0.0.3
+  title: ""
+  date: 2023-10-12T14:28:47.805Z
+- commits:
     - subject: Deploy ctr-jailer as a reusable build stage
       hash: 9039c043c175ba180c9706a5cb780d7edc91da8f
       body: ""
