@@ -6,6 +6,21 @@ Append a build stage to your containers and run them as microVMs with Firecracke
 
 [Firecracker](https://firecracker-microvm.github.io/) is an open source virtualization technology that is purpose-built for creating and managing secure, multi-tenant container and function-based services that provide serverless operational models. Firecracker runs workloads in lightweight virtual machines, called microVMs, which combine the security and isolation properties provided by hardware virtualization technology with the speed and flexibility of containers.
 
+## Benefits
+
+- Privileged containers can be run in an isolated virtual environment
+- Container root filesystem is truly ephemeral and [recreated on each restart](#filesystem)
+- Container networks are segmented with one TAP/TUN interface per VM
+- Allows for runtime secrets by deleting environment files after use
+- Ideal for services exposed to the public, without risking the host OS
+
+## Caveats
+
+- The guest container OS must follow [some guidelines](#guest-container)
+- Environment variables need to be read from a file, and [are not exported by default](#environment-variables)
+- Only one persistent volume is supported right now, and [it needs to be mounted](filesystem)
+- Ports can not be exposed without custom iptables rules (TBD)
+
 ## Requirements
 
 ### Kernel Modules
@@ -49,9 +64,9 @@ Add the following lines to the end of your existing Dockerfile for publishing.
 # The rest of your docker instructions up here AS my-rootfs
 
 # Include firecracker wrapper and scripts
-FROM ghcr.io/balena-io/ctr-jailer AS runtime
+FROM ghcr.io/balena-io-experimental/ctr-jailer
 
-# Copy the root file system from your container final stage
+# Copy the root file system from your existing final stage
 COPY --from=my-rootfs / /usr/src/app/rootfs
 
 # Provide your desired command to exec after init.
@@ -119,7 +134,9 @@ Resources like virtual CPUs and Memory can be overprovisioned and adjusted via t
 
 The default is the maximum available on the host.
 
-### Persistent Storage
+The [jailer](https://github.com/firecracker-microvm/firecracker/blob/main/docs/jailer.md) also allows for resource slicing, but that implementation is TBD.
+
+### Filesystem
 
 The root filesystem is recreated on every run, so anything written to the root partition will not persist restarts and
 is considered ephemeral similar to container layers.
