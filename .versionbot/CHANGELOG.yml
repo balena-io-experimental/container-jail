@@ -1,0 +1,13 @@
+- commits:
+    - subject: Deploy ctr-jailer as a reusable build stage
+      hash: 9039c043c175ba180c9706a5cb780d7edc91da8f
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Kyle Harding <kyle@balena.io>
+        signed-off-by: Kyle Harding <kyle@balena.io>
+      author: Kyle Harding
+  version: 0.0.2
+  title: ""
+  date: 2023-10-12T03:10:19.170Z
