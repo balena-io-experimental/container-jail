@@ -99,7 +99,8 @@ generate_config() {
     jq ".\"machine-config\".mem_size_mib = ${MEM_SIZE_MIB}" "${_dst_config}" >"${_dst_config}".tmp
     mv "${_dst_config}".tmp "${_dst_config}"
 
-    jq ".\"network-interfaces\"[0].iface_id = \"${GUEST_IFACE}\"" "${_dst_config}" >"${_dst_config}".tmp
+    # It doesn't seem to matter what we call this interface, it always shows up as 'eth0' in the guest
+    jq ".\"network-interfaces\"[0].iface_id = \"net0\"" "${_dst_config}" >"${_dst_config}".tmp
     mv "${_dst_config}".tmp "${_dst_config}"
 
     jq ".\"network-interfaces\"[0].guest_mac = \"${GUEST_MAC}\"" "${_dst_config}" >"${_dst_config}".tmp
@@ -151,6 +152,23 @@ normalize_cidr() {
     _short_netmask="$(ipcalc -nb "${1}" | awk '/^Netmask:/ {print $4}')"
 
     echo "${_address}/${_short_netmask}"
+}
+
+network_config() {
+    local _client_ip="${1}"
+    local _server_ip=""
+    local _gw_ip="${2}"
+    local _netmask
+    local _hostname="${3:-${HOSTNAME}}"
+    local _device="${4:-eth0}"
+    local _autoconf=off
+
+    # normalize addresses to remove cidr suffix
+    _client_ip="$(ipcalc -nb "${_client_ip}" | awk '/^Address:/ {print $2}')"
+    _gw_ip="$(ipcalc -nb "${_gw_ip}" | awk '/^Address:/ {print $2}')"
+    _netmask="$(ipcalc -nb "${_client_ip}" | awk '/^Netmask:/ {print $2}')"
+
+    echo "ip=${_client_ip}:${_server_ip}:${_gw_ip}:${_netmask}:${_hostname}:${_device}:${_autoconf}"
 }
 
 ip_to_mac() {
@@ -226,20 +244,8 @@ if [ -z "${DATAFS_SIZE:-}" ]; then
     DATAFS_SIZE=$(df -Ph . | tail -1 | awk '{print $4}')
 fi
 
-if [ -z "${KERNEL_BOOT_ARGS:-}" ]; then
-    KERNEL_BOOT_ARGS="console=ttyS0 reboot=k panic=1 pci=off random.trust_cpu=on"
-
-    if [ "$(uname -m)" = "aarch64" ]; then
-        KERNEL_BOOT_ARGS="keep_bootcon ${KERNEL_BOOT_ARGS}"
-    fi
-fi
-
 if [ -z "${HOST_IFACE:-}" ]; then
     HOST_IFACE="$(ip route | awk '/default/ {print $5}')"
-fi
-
-if [ -z "${GUEST_IFACE:-}" ]; then
-    GUEST_IFACE="net0"
 fi
 
 if [ -z "${TAP_IP:-}" ]; then
@@ -249,27 +255,41 @@ fi
 
 TAP_IP="$(normalize_cidr "${TAP_IP}")"
 
+if [ -z "${GUEST_IP:-}" ]; then
+    # the default guest IP is the TAP IP + 1
+    GUEST_IP="$(echo "${TAP_IP}" | awk -F'[./]' '{print $1"."$2"."$3"."$4+1}')"
+fi
+
 if [ -z "${TAP_DEVICE:-}" ]; then
     # must be less than 16 characters
     TAP_DEVICE="$(echo "${TAP_IP}" | awk -F'[./]' '{print "tap-"$1"-"$2"-"$3}')"
 fi
 
 if [ -z "${GUEST_MAC:-}" ]; then
-    # Guest MAC is '52:54' followed by the first 3 octets of the TAP IP,
-    # followed by the last octet of the TAP IP incremented by 1.
-    GUEST_MAC="$(ip_to_mac "$(echo "${TAP_IP}" | awk -F'[./]' '{print $1"."$2"."$3"."$4+1}')")"
+    # guest MAC is '52:54' followed by the hex encoded guest IP octets
+    GUEST_MAC="$(ip_to_mac "${GUEST_IP}")"
 fi
 
-echo "VCPUs: ${VCPU_COUNT}"
+if [ -z "${KERNEL_BOOT_ARGS:-}" ]; then
+    KERNEL_BOOT_ARGS="console=ttyS0 reboot=k panic=1 pci=off random.trust_cpu=on"
+
+    if [ "$(uname -m)" = "aarch64" ]; then
+        KERNEL_BOOT_ARGS="keep_bootcon ${KERNEL_BOOT_ARGS}"
+    fi
+fi
+
+KERNEL_BOOT_ARGS="${KERNEL_BOOT_ARGS} $(network_config "${GUEST_IP}" "${TAP_IP}" "$(hostname)" eth0)"
+
+echo "Virtual CPUs: ${VCPU_COUNT}"
 echo "Memory: ${MEM_SIZE_MIB}M"
 echo "Root Drive (vda): ${ROOTFS_SIZE}"
 echo "Data Drive (vdb): ${DATAFS_SIZE}"
-echo "Kernel boot args: ${KERNEL_BOOT_ARGS}"
 echo "Host Interface: ${HOST_IFACE}"
-echo "Guest Interface: ${GUEST_IFACE}"
-echo "TAP Device ID: ${TAP_DEVICE}"
+echo "TAP Device: ${TAP_DEVICE}"
 echo "TAP IP Address: ${TAP_IP}"
+echo "Guest IP Address: ${GUEST_IP}"
 echo "Guest MAC Address: ${GUEST_MAC}"
+echo "Kernel Boot Args: ${KERNEL_BOOT_ARGS}"
 
 trap cleanup EXIT
 

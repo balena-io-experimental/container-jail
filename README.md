@@ -50,9 +50,7 @@ Guest containers based on Alpine, Debian, and Ubuntu have been tested and must h
 available from a shell.
 
 - `sh`
-- `ip` via `iproute2`
 - `mount`
-- `awk`
 
 Distroless containers are not expected to work as the kernel init binary is a shell script.
 
