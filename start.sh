@@ -47,7 +47,7 @@ remount_tmpfs_exec() {
     mkdir -p "${1}"
     if is_tmpfs "${1}"; then
         echo "Remounting ${1} with the execute bit set..."
-        mount -o remount,rw,exec tmpfs /srv
+        mount -o remount,rw,exec tmpfs "${1}"
     fi
 }
 
@@ -273,7 +273,9 @@ echo "Kernel boot args: ${KERNEL_BOOT_ARGS}"
 
 trap cleanup EXIT
 
-remount_tmpfs_exec "$(dirname "${chroot_base}")"
+remount_tmpfs_exec "/tmp"
+remount_tmpfs_exec "/run"
+remount_tmpfs_exec "/srv"
 
 create_tap_device "${tap_dev}" "${tap_ip}" "${short_netmask}"
 apply_routing "${tap_dev}" "${iface_id}"
