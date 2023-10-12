@@ -1,4 +1,17 @@
 - commits:
+    - subject: Use kernel command line to initialize network
+      hash: 73c6306075ada9c4cfbf5da57c57c2bb15e29497
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Kyle Harding <kyle@balena.io>
+        signed-off-by: Kyle Harding <kyle@balena.io>
+      author: Kyle Harding
+  version: 0.0.5
+  title: ""
+  date: 2023-10-12T19:58:32.155Z
+- commits:
     - subject: Publish images to ghcr.io
       hash: 2d7ede850822a1da2ee130ff0d53ee3c21a03ec3
       body: ""
