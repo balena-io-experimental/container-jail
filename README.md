@@ -79,10 +79,10 @@ services:
       - /srv
     # Optionally mount a persistent data volume where a data drive will be created for the VM
     volumes:
-      - persistent-data:/data
+      - data:/jail/data
 
 volumes:
-  persistent-data: {}
+  data: {}
 ```
 
 That's it! The firecracker runtime image will execute your rootfs as a MicroVM.
