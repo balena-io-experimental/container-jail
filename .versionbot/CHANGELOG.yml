@@ -1,4 +1,17 @@
 - commits:
+    - subject: Update README
+      hash: 0cede267d023fa5796a5e3923699d9e22d5406fd
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Kyle Harding <kyle@balena.io>
+        signed-off-by: Kyle Harding <kyle@balena.io>
+      author: Kyle Harding
+  version: 0.0.6
+  title: ""
+  date: 2023-10-13T20:24:33.229Z
+- commits:
     - subject: Use kernel command line to initialize network
       hash: 73c6306075ada9c4cfbf5da57c57c2bb15e29497
       body: ""
