@@ -6,20 +6,15 @@ Append a build stage to your containers and run them as microVMs with Firecracke
 
 [Firecracker](https://firecracker-microvm.github.io/) is an open source virtualization technology that is purpose-built for creating and managing secure, multi-tenant container and function-based services that provide serverless operational models. Firecracker runs workloads in lightweight virtual machines, called microVMs, which combine the security and isolation properties provided by hardware virtualization technology with the speed and flexibility of containers.
 
-## Benefits
-
-- Privileged containers can be run in an isolated virtual environment
-- Container root filesystem is truly ephemeral and [recreated on each restart](#filesystem)
-- Container networks are segmented with one TAP/TUN interface per VM
-- Allows for runtime secrets by deleting environment files after use
-- Ideal for services exposed to the public, without risking the host OS
-
 ## Caveats
 
 - The guest container OS must follow [some guidelines](#guest-container)
+- Most run/compose instructions are not supported directly and require workarounds
 - Environment variables need to be read from a file, and [are not exported by default](#environment-variables)
-- Only one persistent volume is supported right now, and [it needs to be mounted](filesystem)
-- Ports can not be exposed without custom iptables rules (TBD)
+- Only one persistent volume is supported right now, and [it needs to be mounted](volumes)
+- Ports can not be exposed without custom iptables rules
+- Healthchecks must be part of the main process as a background task
+- Currently there is no way to exec into the guest container for debugging
 
 ## Requirements
 
@@ -99,7 +94,7 @@ volumes:
   data: {}
 ```
 
-That's it! The firecracker runtime image will execute your container as a MicroVM.
+That's it! The Container Jailer runtime image will execute your container as a MicroVM.
 
 Reference: <https://github.com/firecracker-microvm/firecracker/blob/main/docs/getting-started.md>
 
@@ -134,7 +129,7 @@ The default is the maximum available on the host.
 
 The [jailer](https://github.com/firecracker-microvm/firecracker/blob/main/docs/jailer.md) also allows for resource slicing, but that implementation is TBD.
 
-### Filesystem
+### Volumes
 
 The root filesystem is recreated on every run, so anything written to the root partition will not persist restarts and
 is considered ephemeral similar to container layers.

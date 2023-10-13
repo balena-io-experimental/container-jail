@@ -24,7 +24,5 @@ if ! mountpoint -q /run; then
   mount -t tmpfs none /run
 fi
 
-set +a
 # shellcheck disable=SC1091
 . /etc/profile || true
-set -a
