@@ -1,4 +1,26 @@
 - commits:
+    - subject: Enable kernel bridge features on arm64
+      hash: ed05f54af5f8619251f48b9aa356d6ecceb72575
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Kyle Harding <kyle@balena.io>
+        signed-off-by: Kyle Harding <kyle@balena.io>
+      author: Kyle Harding
+    - subject: Build kernel from source with local config
+      hash: 78e40a637a97eaf7d79ba33c6561bc064e083d76
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Kyle Harding <kyle@balena.io>
+        signed-off-by: Kyle Harding <kyle@balena.io>
+      author: Kyle Harding
+  version: 0.0.7
+  title: ""
+  date: 2023-10-17T18:21:42.398Z
+- commits:
     - subject: Update README
       hash: 0cede267d023fa5796a5e3923699d9e22d5406fd
       body: ""
