@@ -1,4 +1,4 @@
-FROM debian:bullseye-slim AS kernel
+FROM debian:bullseye-slim AS linux.git
 
 WORKDIR /src
 
@@ -7,20 +7,35 @@ ARG DEBIAN_FRONTEND=noninteractive
 # hadolint ignore=DL3008
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
-    awscli \
+    bc \
+    binutils \
+    bison \
+    build-essential \
     ca-certificates \
-    curl \
+    cpio \
+    flex \
+    git \
+    libelf-dev \
+    libncurses-dev \
+    libssl-dev \
+    vim-tiny \
     && rm -rf /var/lib/apt/lists/*
 
-SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+ARG KERNEL_BRANCH=5.10
 
-# Print the available kernels in S3 in case the filenames change
-RUN aws s3 ls --no-sign-request "s3://spec.ccfc.min/firecracker-ci/v1.6/$(uname -m)/"
+RUN git clone --depth 1 --branch "v${KERNEL_BRANCH}" https://github.com/torvalds/linux.git .
 
-# RUN curl -fsSL "https://s3.amazonaws.com/spec.ccfc.min/img/quickstart_guide/$(uname -m)/kernels/vmlinux.bin" -o vmlinux.bin
-# RUN curl -fsSL "http://mirror.archlinuxarm.org/aarch64/core/linux-aarch64-6.2.10-1-aarch64.pkg.tar.xz" -o vmlinux.bin
-# RUN curl -fsSL "https://s3.amazonaws.com/spec.ccfc.min/img/hello/kernel/hello-vmlinux.bin" -o vmlinux.bin
-RUN curl -fsSL "https://s3.amazonaws.com/spec.ccfc.min/firecracker-ci/v1.6/$(uname -m)/vmlinux-5.10.197" -o vmlinux.bin
+###############################################
+
+FROM linux.git AS vmlinux
+
+COPY vmlinux/*.config ./
+
+RUN if [ "$(uname -m)" = "aarch64" ] ; \
+    then ln -sf "microvm-kernel-arm64-5.10.config" .config && make Image && \
+    cp ./arch/arm64/boot/Image ./vmlinux ; \
+    else ln -sf "microvm-kernel-x86_64-5.10.config" .config && make vmlinux ; \
+    fi
 
 ###############################################
 
@@ -77,7 +92,7 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=firecracker /usr/local/bin/* /usr/local/bin/
-COPY --from=kernel /src/vmlinux.bin /jail/boot/vmlinux.bin
+COPY --from=vmlinux /src/vmlinux /jail/boot/vmlinux.bin
 
 RUN addgroup --system firecracker \
     && adduser --system firecracker --ingroup firecracker \
