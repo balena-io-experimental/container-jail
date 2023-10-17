@@ -1,4 +1,18 @@
 - commits:
+    - subject: Enable xtables addrtype matching in arm64 kernel
+      hash: fe6aa6c4d438475bd94926f93dd57e557f9cf4cd
+      body: |
+        Required for docker engine.
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Kyle Harding <kyle@balena.io>
+        signed-off-by: Kyle Harding <kyle@balena.io>
+      author: Kyle Harding
+  version: 0.0.8
+  title: ""
+  date: 2023-10-17T19:54:09.535Z
+- commits:
     - subject: Enable kernel bridge features on arm64
       hash: ed05f54af5f8619251f48b9aa356d6ecceb72575
       body: ""
