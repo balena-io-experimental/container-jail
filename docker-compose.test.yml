@@ -11,6 +11,7 @@ services:
       - alpine-test
       - debian-test
       - ubuntu-test
+      - dind-test
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./:/usr/src/app:ro
@@ -37,6 +38,7 @@ services:
           docker compose logs --no-color alpine-test | grep "touch /mnt/data/healthy" || continue
           docker compose logs --no-color debian-test | grep "touch /mnt/data/healthy" || continue
           docker compose logs --no-color ubuntu-test | grep "touch /mnt/data/healthy" || continue
+          docker compose logs --no-color dind-test | grep "Daemon has completed initialization" || continue
 
           break
 
@@ -68,3 +70,17 @@ services:
       context: .
       target: ubuntu-test
     command: /usr/local/bin/healthcheck.sh
+
+  dind-test:
+    extends:
+      file: docker-compose.yml
+      service: firecracker
+    build:
+      context: .
+      target: dind-test
+    environment:
+      - DOCKER_TLS_CERTDIR=
+    command:
+      - /bin/sh
+      - -c
+      - mount -t cgroup cgroup /sys/fs/cgroup ; /usr/local/bin/dockerd-entrypoint.sh
