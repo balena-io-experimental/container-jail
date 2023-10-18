@@ -24,6 +24,10 @@ if ! mountpoint -q /run; then
   mount -t tmpfs none /run
 fi
 
+if ! mountpoint -q /sys/fs/cgroup; then
+  mount -t cgroup cgroup /sys/fs/cgroup
+fi
+
 if [ -f /etc/profile ]; then
   # shellcheck disable=SC1091
   . /etc/profile || true

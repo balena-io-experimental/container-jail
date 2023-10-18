@@ -80,7 +80,4 @@ services:
       target: dind-test
     environment:
       - DOCKER_TLS_CERTDIR=
-    command:
-      - /bin/sh
-      - -c
-      - mount -t cgroup cgroup /sys/fs/cgroup ; /usr/local/bin/dockerd-entrypoint.sh
+    command: /usr/local/bin/dockerd-entrypoint.sh
