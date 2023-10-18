@@ -9,6 +9,10 @@ uname -a
 df -h
 lsblk
 
+printenv
+
+test "${GUEST_HOSTNAME}" = "$(hostname)"
+
 ip link list
 ip route
 

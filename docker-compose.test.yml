@@ -51,6 +51,8 @@ services:
     build:
       context: .
       target: alpine-test
+    environment:
+      - GUEST_HOSTNAME=alpine-test
     command: /usr/local/bin/healthcheck.sh
 
   debian-test:
@@ -60,6 +62,8 @@ services:
     build:
       context: .
       target: debian-test
+    environment:
+      - GUEST_HOSTNAME=debian-test
     command: /usr/local/bin/healthcheck.sh
 
   ubuntu-test:
@@ -69,6 +73,8 @@ services:
     build:
       context: .
       target: ubuntu-test
+    environment:
+      - GUEST_HOSTNAME=ubuntu-test
     command: /usr/local/bin/healthcheck.sh
 
   dind-test:
@@ -80,4 +86,5 @@ services:
       target: dind-test
     environment:
       - DOCKER_TLS_CERTDIR=
+      - GUEST_HOSTNAME=dind-test
     command: /usr/local/bin/dockerd-entrypoint.sh

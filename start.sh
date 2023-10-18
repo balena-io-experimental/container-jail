@@ -133,9 +133,9 @@ network_config() {
     local _client_ip="${1}"
     local _server_ip=""
     local _gw_ip="${2}"
-    local _netmask
-    local _hostname="${3:-${HOSTNAME}}"
-    local _device="${4:-eth0}"
+    local _netmask=""
+    local _hostname="${3}"
+    local _device="${4}"
     local _autoconf=off
 
     # normalize addresses to remove cidr suffix
@@ -254,6 +254,10 @@ if [ -z "${GUEST_MAC:-}" ]; then
     GUEST_MAC="$(ip_to_mac "${GUEST_IP}")"
 fi
 
+if [ -z "${GUEST_HOSTNAME:-}" ]; then
+    GUEST_HOSTNAME="$(hostname)"
+fi
+
 if [ -z "${KERNEL_BOOT_ARGS:-}" ]; then
     KERNEL_BOOT_ARGS="console=ttyS0 reboot=k panic=1 pci=off random.trust_cpu=on"
 
@@ -262,7 +266,7 @@ if [ -z "${KERNEL_BOOT_ARGS:-}" ]; then
     fi
 fi
 
-KERNEL_BOOT_ARGS="${KERNEL_BOOT_ARGS} $(network_config "${GUEST_IP}" "${TAP_IP}" "$(hostname)" eth0)"
+KERNEL_BOOT_ARGS="${KERNEL_BOOT_ARGS} $(network_config "${GUEST_IP}" "${TAP_IP}" "${GUEST_HOSTNAME}" eth0)"
 
 echo "Virtual CPUs: ${VCPU_COUNT}"
 echo "Memory: ${MEM_SIZE_MIB}M"
