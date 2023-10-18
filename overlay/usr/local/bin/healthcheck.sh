@@ -9,7 +9,9 @@ uname -a
 df -h
 lsblk
 
-. /var/environment
+printenv
+
+test "${GUEST_HOSTNAME}" = "$(hostname)"
 
 ip link list
 ip route
