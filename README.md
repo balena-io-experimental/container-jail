@@ -10,7 +10,6 @@ Append a build stage to your containers and run them as microVMs with Firecracke
 
 - The guest container OS must follow [some guidelines](#guest-container)
 - Most run/compose instructions are not supported directly and require workarounds
-- Environment variables need to be read from a file, and [are not exported by default](#environment-variables)
 - Only one persistent volume is supported right now, and [it needs to be mounted](volumes)
 - Ports can not be exposed without custom iptables rules
 - Healthchecks must be part of the main process as a background task
@@ -102,10 +101,11 @@ Reference: <https://github.com/firecracker-microvm/firecracker/blob/main/docs/ge
 
 ### Environment Variables
 
-Environment variables made available to the jailer runtime will be written to `/var/environment` in
-the VM for optional use.
+Environment variables made available to the jailer runtime will be written to `/etc/profile.d/fc_exports.sh` and
+automatically sourced by the init script and then deleted.
 
-For use with secrets, it is recommended to source the values as needed, and delete the file.
+For use with secrets, it is recommended to `unset` the sensitive env vars early in your run command so they are not available
+to child processes in the VM.
 
 ### Networking
 
