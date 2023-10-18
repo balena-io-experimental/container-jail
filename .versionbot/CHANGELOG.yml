@@ -1,4 +1,17 @@
 - commits:
+    - subject: Update README
+      hash: ea4e887d80d77bd7776ce517fd8e3418172e64e3
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Kyle Harding <kyle@balena.io>
+        signed-off-by: Kyle Harding <kyle@balena.io>
+      author: Kyle Harding
+  version: 0.0.11
+  title: ""
+  date: 2023-10-18T19:39:05.665Z
+- commits:
     - subject: Use export -p to create a drop-in profile
       hash: eda8664798c584307de8fcc4db864c880b860991
       body: ""
