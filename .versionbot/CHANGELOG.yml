@@ -1,4 +1,17 @@
 - commits:
+    - subject: Add docker-in-docker test
+      hash: 5918b8eb9920f0ae00961ebb53678a4b80d08241
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Kyle Harding <kyle@balena.io>
+        signed-off-by: Kyle Harding <kyle@balena.io>
+      author: Kyle Harding
+  version: 0.0.9
+  title: ""
+  date: 2023-10-18T03:23:14.617Z
+- commits:
     - subject: Enable xtables addrtype matching in arm64 kernel
       hash: fe6aa6c4d438475bd94926f93dd57e557f9cf4cd
       body: |
