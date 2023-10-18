@@ -6,32 +6,6 @@
 
 set -eu
 
-# Accepts a suffix to specify the size in bytes (b), kilobytes (k),
-# megabytes (m), gigabytes (g), terabytes (t), petabytes (p), or exabytes (e)
-align_to_block_size() {
-    local _size="${1}"
-
-    # Get the numeric part and the suffix of ROOTFS_SIZE
-    numeric="${1//[bkmgtpeBKMGTPE]/}"
-    suffix="${1//[0-9]/}"
-
-    # Convert provided size to bytes
-    case ${suffix,,} in
-        e) bytes=$((numeric*1024*1024*1024*1024*1024*1024)) ;;
-        p) bytes=$((numeric*1024*1024*1024*1024*1024)) ;;
-        t) bytes=$((numeric*1024*1024*1024*1024)) ;;
-        g) bytes=$((numeric*1024*1024*1024)) ;;
-        m) bytes=$((numeric*1024*1024)) ;;
-        k) bytes=$((numeric*1024)) ;;
-        b) bytes=$((numeric)) ;;
-        *) echo "Invalid suffix in ${1}"; exit 1 ;;
-    esac
-
-    block_size="$(stat -fc %s "${2}")"
-
-    echo "$((bytes/block_size*block_size))"
-}
-
 populate_rootfs() {
     echo "Populating rootfs..."
 
@@ -43,14 +17,13 @@ populate_rootfs() {
     rm -f "${_dst_rootfs}"
     mkdir -p "${_rootfs_mnt}"
 
-    # truncate -s "$(align_to_block_size "${ROOTFS_SIZE}" "${_rootfs_mnt}")" "${_dst_rootfs}"
     truncate -s "${ROOTFS_SIZE}" "${_dst_rootfs}"
     mkfs.ext4 "${_dst_rootfs}"
 
-    # tune2fs -l "${_dst_rootfs}"
-    # tune2fs -O ^has_journal "${_dst_rootfs}"
-
-    mount -v -t ext4 -o defaults "${_dst_rootfs}" "${_rootfs_mnt}" || { dmesg | tail -5 ; exit 1 ; }
+    mount -v -t ext4 -o defaults "${_dst_rootfs}" "${_rootfs_mnt}" || {
+        dmesg | tail -5
+        exit 1
+    }
 
     rsync -a "${_src_rootfs}"/ "${_rootfs_mnt}"/
     for dir in dev proc run sys var; do mkdir -p "${_rootfs_mnt}/${dir}"; done
@@ -59,11 +32,13 @@ populate_rootfs() {
     # we would probably use --ignore-existing as well
     rsync -a --keep-dirlinks "${overlay_src}"/ "${_rootfs_mnt}"/
 
-    # write the CMD to the end of the init script
-    echo "Injecting COMMAND: ${args[*]}"
-    echo "exec ${args[*]}" >>"${_rootfs_mnt}/sbin/init"
+    # Write all environment variables to /var/environment in the rootfs
+    printenv >"${_rootfs_mnt}/var/environment"
 
-    umount "${_rootfs_mnt}"
+    # write the guest command to the end of the init script
+    echo "exec ${cmd_str}" >>"${_rootfs_mnt}/sbin/init"
+
+    umount -v "${_rootfs_mnt}"
 
     chown firecracker:firecracker "${_dst_rootfs}"
 }
@@ -199,8 +174,17 @@ cleanup() {
     iptables-legacy-save | grep -v "comment ${TAP_DEVICE}" | iptables-legacy-restore
 }
 
-# Store the script arguments in an array
-args=("$@")
+# Store the script arguments as the guest command
+for arg in "$@"; do
+    # Remove existing quotes
+    arg=${arg%\"}
+    arg=${arg#\"}
+    # Escape existing unescaped quotes
+    arg=${arg//\"/\\\"}
+    # Add quotes around arguments
+    arg="\"$arg\""
+    cmd_str+="$arg "
+done
 
 script_root="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 overlay_src="${script_root}/overlay"
@@ -290,17 +274,9 @@ echo "TAP IP Address: ${TAP_IP}"
 echo "Guest IP Address: ${GUEST_IP}"
 echo "Guest MAC Address: ${GUEST_MAC}"
 echo "Kernel Boot Args: ${KERNEL_BOOT_ARGS}"
+echo "Guest Command: ${cmd_str}"
 
 trap cleanup EXIT
-
-# Write all environment variables to a file in the overlay
-mkdir -p "${overlay_src}/var"
-# Quote all variables to prevent globbing and word splitting
-printenv | sed -e 's/=\(.*\)/="\1"/g' >"${overlay_src}/var/environment"
-# Remove environment variables that are not needed by the guest
-for key in PWD TERM USER SHLVL PATH HOME _; do
-    sed -e "/^${key}=/d" -i "${overlay_src}/var/environment"
-done
 
 # Remount tmpfs mounts with the execute bit set
 for dir in /tmp /run /srv; do

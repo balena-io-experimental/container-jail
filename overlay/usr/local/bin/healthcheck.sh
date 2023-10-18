@@ -9,8 +9,6 @@ uname -a
 df -h
 lsblk
 
-. /var/environment
-
 ip link list
 ip route
 
