@@ -32,8 +32,9 @@ populate_rootfs() {
     # we would probably use --ignore-existing as well
     rsync -a --keep-dirlinks "${overlay_src}"/ "${_rootfs_mnt}"/
 
-    # Write all environment variables to /var/environment in the rootfs
-    printenv >"${_rootfs_mnt}/var/environment"
+    # Write all environment variable exports to a file in the rootfs
+    mkdir -p "${_rootfs_mnt}/etc/profile.d"
+    sh -c 'export -p' | grep -vE "^(export )?(PWD|TERM|USER|SHLVL|PATH|HOME|HOSTNAME|_)=" >"${_rootfs_mnt}/etc/profile.d/fc_exports.sh"
 
     # write the guest command to the end of the init script
     echo "exec ${cmd_str}" >>"${_rootfs_mnt}/sbin/init"
