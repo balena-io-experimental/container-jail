@@ -31,14 +31,5 @@ fi
 if [ -f /etc/profile ]; then
   # shellcheck disable=SC1091
   . /etc/profile || true
-fi
-
-# inject env vars only if they are currently unset
-if [ -f /var/environment ]; then
-  while IFS='=' read -r key value; do
-    if [ -z "$(eval "echo \"\$$key\"")" ]; then
-      export "$key=$value"
-    fi
-  done < /var/environment
-  rm -f /var/environment
+  rm -f /etc/profile.d/fc_exports.sh
 fi
