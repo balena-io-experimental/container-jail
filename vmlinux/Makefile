@@ -5,12 +5,12 @@ OUTPUT_DIR ?= $(shell pwd)/out
 
 ifeq ($(ARCH),x86_64)
 	KERNEL_CONFIG := microvm-kernel-x86_64-5.10.config
-	KERNEL_BIN := microvm-kernel-x86_64-5.10.bin
+	KERNEL_BIN := microvm-kernel-x86_64-5.10.lz4
 	TARGET := x86_64-vmlinux
 	PLATFORM := linux/amd64
 else
 	KERNEL_CONFIG := microvm-kernel-arm64-5.10.config
-	KERNEL_BIN := microvm-kernel-arm64-5.10.bin
+	KERNEL_BIN := microvm-kernel-arm64-5.10.lz4
 	TARGET := arm64-vmlinux
 	PLATFORM := linux/arm64
 endif
@@ -30,7 +30,7 @@ vmlinux:
 		--platform $(PLATFORM) \
 		--build-arg KERNEL_BRANCH="$(KERNEL_BRANCH)" \
 		--build-arg KERNEL_CONFIG="$(KERNEL_CONFIG)"
-	mv $(OUTPUT_DIR)/vmlinux.bin $(KERNEL_BIN)
+	mv $(OUTPUT_DIR)/vmlinux.lz4 $(KERNEL_BIN)
 
 menuconfig: build-base
 	mkdir -p $(OUTPUT_DIR)

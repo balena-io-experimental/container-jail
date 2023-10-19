@@ -19,6 +19,7 @@ RUN apt-get update \
     libelf-dev \
     libncurses-dev \
     libssl-dev \
+    lz4 \
     vim-tiny \
     && rm -rf /var/lib/apt/lists/*
 
@@ -35,7 +36,8 @@ FROM build-base AS arm64-build
 
 RUN --mount=type=cache,target=/root/.ccache ccache -z \
     && KBUILD_BUILD_TIMESTAMP='' make CC="ccache gcc" -j"$(nproc)" Image \
-    && ccache -s
+    && ccache -s \
+    && lz4 ./arch/arm64/boot/Image vmlinux.lz4
 
 ###############################################
 
@@ -43,16 +45,17 @@ FROM build-base AS x86_64-build
 
 RUN --mount=type=cache,target=/root/.ccache ccache -z \
     && KBUILD_BUILD_TIMESTAMP='' make CC="ccache gcc" -j"$(nproc)" vmlinux \
-    && ccache -s
+    && ccache -s \
+    && lz4 ./vmlinux vmlinux.lz4
 
 ###############################################
 
 FROM scratch AS arm64-vmlinux
 
-COPY --from=arm64-build /src/arch/arm64/boot/Image /vmlinux.bin
+COPY --from=arm64-build /src/vmlinux.lz4 /vmlinux.lz4
 
 ###############################################
 
 FROM scratch AS x86_64-vmlinux
 
-COPY --from=x86_64-build /src/vmlinux /vmlinux.bin
+COPY --from=x86_64-build /src/vmlinux.lz4 /vmlinux.lz4

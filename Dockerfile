@@ -2,13 +2,13 @@ FROM debian:bullseye-slim AS vmlinux
 
 WORKDIR /src
 
-COPY vmlinux/*.bin ./
+COPY vmlinux/*.lz4 ./
 
 RUN if [ "$(uname -m)" = "x86_64" ] ; \
-    then mv "microvm-kernel-x86_64-5.10.bin" vmlinux.bin ; \
-    else mv "microvm-kernel-arm64-5.10.bin" vmlinux.bin ; \
+    then lz4 -d "microvm-kernel-x86_64-5.10.lz4" vmlinux.bin ; \
+    else lz4 -d "microvm-kernel-arm64-5.10.lz4" vmlinux.bin ; \
     fi \
-    && rm -f microvm-kernel-*.bin
+    && rm -f ./*.lz4
 
 ###############################################
 
