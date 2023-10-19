@@ -24,6 +24,7 @@ build-base:
 
 vmlinux:
 	DOCKER_BUILDKIT=1 docker build . \
+		--progress=plain \
 		--target $(TARGET) \
 		--output type=local,dest=$(OUTPUT_DIR) \
 		--platform $(PLATFORM) \

@@ -12,6 +12,7 @@ RUN apt-get update \
     bison \
     build-essential \
     ca-certificates \
+    ccache \
     cpio \
     flex \
     git \
@@ -32,13 +33,17 @@ COPY ${KERNEL_CONFIG} /src/.config
 
 FROM build-base AS arm64-build
 
-RUN ARCH=arm64 make Image -j"$(nproc)"
+RUN --mount=type=cache,target=/root/.ccache ccache -z \
+    && KBUILD_BUILD_TIMESTAMP='' make CC="ccache gcc" -j"$(nproc)" Image \
+    && ccache -s
 
 ###############################################
 
 FROM build-base AS x86_64-build
 
-RUN ARCH=x86_64 make vmlinux -j"$(nproc)"
+RUN --mount=type=cache,target=/root/.ccache ccache -z \
+    && KBUILD_BUILD_TIMESTAMP='' make CC="ccache gcc" -j"$(nproc)" vmlinux \
+    && ccache -s
 
 ###############################################
 
