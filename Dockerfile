@@ -1,41 +1,14 @@
-FROM debian:bullseye-slim AS linux.git
+FROM debian:bullseye-slim AS vmlinux
 
 WORKDIR /src
 
-ARG DEBIAN_FRONTEND=noninteractive
+COPY vmlinux/*.bin ./
 
-# hadolint ignore=DL3008
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends \
-    bc \
-    binutils \
-    bison \
-    build-essential \
-    ca-certificates \
-    cpio \
-    flex \
-    git \
-    libelf-dev \
-    libncurses-dev \
-    libssl-dev \
-    vim-tiny \
-    && rm -rf /var/lib/apt/lists/*
-
-ARG KERNEL_BRANCH=5.10
-
-RUN git clone --depth 1 --branch "v${KERNEL_BRANCH}" https://github.com/torvalds/linux.git .
-
-###############################################
-
-FROM linux.git AS vmlinux
-
-COPY vmlinux/*.config ./
-
-RUN if [ "$(uname -m)" = "aarch64" ] ; \
-    then ln -sf "microvm-kernel-arm64-5.10.config" .config && make Image && \
-    cp ./arch/arm64/boot/Image ./vmlinux ; \
-    else ln -sf "microvm-kernel-x86_64-5.10.config" .config && make vmlinux ; \
-    fi
+RUN if [ "$(uname -m)" = "x86_64" ] ; \
+    then mv "microvm-kernel-x86_64-5.10.bin" vmlinux.bin ; \
+    else mv "microvm-kernel-arm64-5.10.bin" vmlinux.bin ; \
+    fi \
+    && rm -f microvm-kernel-*.bin
 
 ###############################################
 
@@ -92,7 +65,7 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=firecracker /usr/local/bin/* /usr/local/bin/
-COPY --from=vmlinux /src/vmlinux /jail/boot/vmlinux.bin
+COPY --from=vmlinux /src/vmlinux.bin /jail/boot/vmlinux.bin
 
 RUN addgroup --system firecracker \
     && adduser --system firecracker --ingroup firecracker \
