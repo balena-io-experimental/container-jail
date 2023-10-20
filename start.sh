@@ -192,18 +192,6 @@ overlay_src="${script_root}/overlay"
 rootfs_src="${script_root}/rootfs"
 config_src="${script_root}/config.json"
 
-# Check for root filesystem
-if ! ls "${rootfs_src}" &>/dev/null; then
-    echo "Root Filesystem not found in ${rootfs_src}. Did you forget to COPY it?"
-    sleep infinity
-fi
-
-# Check for hardware acceleration
-if ! ls /dev/kvm &>/dev/null; then
-    echo "KVM hardware acceleration unavailable. Pass --device /dev/kvm in your Docker run command."
-    sleep infinity
-fi
-
 # Set default cores to same as system if not specified
 if [ -z "${VCPU_COUNT:-}" ]; then
     VCPU_COUNT=$(nproc --all)
@@ -221,12 +209,12 @@ fi
 
 # Set default space to same as available on system if not specified
 if [ -z "${ROOTFS_SIZE:-}" ]; then
-    ROOTFS_SIZE=$(df -Ph . | tail -1 | awk '{print $4}')
+    ROOTFS_SIZE=$(df -B1 . | awk 'NR==2 {print $2}')
 fi
 
 # Set default space to same as available on system if not specified
 if [ -z "${DATAFS_SIZE:-}" ]; then
-    DATAFS_SIZE=$(df -Ph . | tail -1 | awk '{print $4}')
+    DATAFS_SIZE=$(df -B1 . | awk 'NR==2 {print $2}')
 fi
 
 if [ -z "${HOST_IFACE:-}" ]; then
@@ -271,8 +259,8 @@ KERNEL_BOOT_ARGS="${KERNEL_BOOT_ARGS} $(network_config "${GUEST_IP}" "${TAP_IP}"
 
 echo "Virtual CPUs: ${VCPU_COUNT}"
 echo "Memory: ${MEM_SIZE_MIB}M"
-echo "Root Drive (vda): ${ROOTFS_SIZE}"
-echo "Data Drive (vdb): ${DATAFS_SIZE}"
+echo "Root Drive (vda): ${ROOTFS_SIZE}B"
+echo "Data Drive (vdb): ${DATAFS_SIZE}B"
 echo "Host Interface: ${HOST_IFACE}"
 echo "TAP Device: ${TAP_DEVICE}"
 echo "TAP IP Address: ${TAP_IP}"
@@ -280,6 +268,18 @@ echo "Guest IP Address: ${GUEST_IP}"
 echo "Guest MAC Address: ${GUEST_MAC}"
 echo "Kernel Boot Args: ${KERNEL_BOOT_ARGS}"
 echo "Guest Command: ${cmd_str}"
+
+# Check for root filesystem
+if ! ls "${rootfs_src}" &>/dev/null; then
+    echo "Root Filesystem not found in ${rootfs_src}. Did you forget to COPY it?"
+    sleep infinity
+fi
+
+# Check for hardware acceleration
+if ! ls /dev/kvm &>/dev/null; then
+    echo "KVM hardware acceleration unavailable. Pass --device /dev/kvm in your Docker run command."
+    sleep infinity
+fi
 
 trap cleanup EXIT
 
@@ -322,6 +322,7 @@ mount --bind "${boot_jail}" "${chroot_dir}"/boot
 mount --bind "${data_jail}" "${chroot_dir}"/data
 
 # /usr/local/bin/firecracker --help
+# /usr/local/bin/jailer --help
 
 echo "Starting firecracker via jailer..."
 # https://github.com/firecracker-microvm/firecracker/blob/main/docs/jailer.md
