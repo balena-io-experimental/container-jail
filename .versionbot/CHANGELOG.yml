@@ -1,4 +1,17 @@
 - commits:
+    - subject: Fix race conditions in serialized tests
+      hash: 3f7b0076eb442f2c958859d63667435148e30e91
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Kyle Harding <kyle@balena.io>
+        signed-off-by: Kyle Harding <kyle@balena.io>
+      author: Kyle Harding
+  version: 0.0.15
+  title: ""
+  date: 2023-10-20T23:18:04.439Z
+- commits:
     - subject: Bail out if TAP device already exists
       hash: bd1134d1c41e81f353f37f6c2fd39518d1d55c4a
       body: |
