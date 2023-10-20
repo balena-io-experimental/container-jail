@@ -1,4 +1,19 @@
 - commits:
+    - subject: Deprecate GUEST_HOSTNAME env var and share hostname with jailer
+      hash: 099b0898965665932f45442369384a29ef588d24
+      body: |
+        Ideally customizing the hostname of the VM should be as simple
+        as setting the hostname: instruction in the compose file.
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Kyle Harding <kyle@balena.io>
+        signed-off-by: Kyle Harding <kyle@balena.io>
+      author: Kyle Harding
+  version: 0.0.13
+  title: ""
+  date: 2023-10-20T17:27:53.518Z
+- commits:
     - subject: Calculate rootfs and datafs max size in bytes
       hash: 0caef7d5c6764c7a5d0329eb96fbc6133c76c171
       body: |
