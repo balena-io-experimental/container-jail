@@ -7,11 +7,6 @@ services:
       DOCKER_HOST: unix:///var/run/docker.sock
       COMPOSE_PROJECT_NAME: ${COMPOSE_PROJECT_NAME:-ctr-jailer}
       COMPOSE_FILE: docker-compose.yml:docker-compose.test.yml
-    depends_on:
-      - alpine-test
-      - debian-test
-      - ubuntu-test
-      - dind-test
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./:/usr/src/app:ro
@@ -23,17 +18,13 @@ services:
         set -ex
         apk add --no-cache docker-cli-compose
 
-        docker compose run --rm --remove-orphans alpine-test
-        docker compose logs --no-color alpine-test | grep "touch /mnt/data/healthy"
+        docker compose run --rm --remove-orphans alpine-test | tee /dev/stderr | grep "touch /mnt/data/healthy"
 
-        docker compose run --rm --remove-orphans debian-test
-        docker compose logs --no-color debian-test | grep "touch /mnt/data/healthy"
+        docker compose run --rm --remove-orphans debian-test | tee /dev/stderr | grep "touch /mnt/data/healthy"
 
-        docker compose run --rm --remove-orphans ubuntu-test
-        docker compose logs --no-color ubuntu-test | grep "touch /mnt/data/healthy"
+        docker compose run --rm --remove-orphans ubuntu-test | tee /dev/stderr | grep "touch /mnt/data/healthy"
 
-        docker compose run --rm --remove-orphans dind-test
-        docker compose logs --no-color dind-test | grep "Daemon has completed initialization"
+        docker compose run --rm --remove-orphans dind-test | tee /dev/stderr | grep "Daemon has completed initialization"
 
   alpine-test:
     extends:
