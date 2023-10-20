@@ -51,6 +51,16 @@ if command -v ip >/dev/null 2>&1; then
     ip route
 fi
 
+# nested virtualization is not available on aarch64
+if [ -r /dev/kvm ]; then
+    ls -l /dev/kvm
+    test -w /dev/kvm
+
+    if which kvm-ok >/dev/null; then
+        kvm-ok
+    fi
+fi
+
 if command -v npm >/dev/null 2>&1; then
     npm ping
 fi
