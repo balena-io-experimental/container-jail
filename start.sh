@@ -93,6 +93,12 @@ setup_networking() {
     local _tap_cidr="${2}"
     local _host_dev="${3}"
 
+    # bail out if dap device already exists
+    if ip link show "${_tap_dev}" >/dev/null 2>&1; then
+        echo "TAP device ${_tap_dev} already exists!"
+        exit 1
+    fi
+
     echo "Creating ${_tap_dev} device..."
     # delete existing tap device
     ip link del "${_tap_dev}" 2>/dev/null || true
