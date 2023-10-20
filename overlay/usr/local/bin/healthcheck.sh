@@ -11,8 +11,8 @@ lsblk
 
 printenv
 
-if [ -n "${GUEST_HOSTNAME}" ]; then
-    test "${GUEST_HOSTNAME}" = "$(hostname)"
+if [ -n "${HOSTNAME}" ]; then
+    test "${HOSTNAME}" = "$(hostname)"
 fi
 
 ip link list

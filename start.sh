@@ -34,7 +34,7 @@ populate_rootfs() {
 
     # Write all environment variable exports to a file in the rootfs
     mkdir -p "${_rootfs_mnt}/etc/profile.d"
-    sh -c 'export -p' | grep -vE "^(export )?(PWD|TERM|USER|SHLVL|PATH|HOME|HOSTNAME|_)=" >"${_rootfs_mnt}/etc/profile.d/fc_exports.sh"
+    sh -c 'export -p' | grep -vE "^(export )?(PWD|TERM|USER|SHLVL|PATH|HOME|_)=" >"${_rootfs_mnt}/etc/profile.d/fc_exports.sh"
 
     # write the guest command to the end of the init script
     echo "exec ${cmd_str}" >>"${_rootfs_mnt}/sbin/init"
@@ -243,10 +243,6 @@ if [ -z "${GUEST_MAC:-}" ]; then
     GUEST_MAC="$(ip_to_mac "${GUEST_IP}")"
 fi
 
-if [ -z "${GUEST_HOSTNAME:-}" ]; then
-    GUEST_HOSTNAME="$(hostname)"
-fi
-
 if [ -z "${KERNEL_BOOT_ARGS:-}" ]; then
     KERNEL_BOOT_ARGS="console=ttyS0 reboot=k panic=1 pci=off random.trust_cpu=on"
 
@@ -255,7 +251,7 @@ if [ -z "${KERNEL_BOOT_ARGS:-}" ]; then
     fi
 fi
 
-KERNEL_BOOT_ARGS="${KERNEL_BOOT_ARGS} $(network_config "${GUEST_IP}" "${TAP_IP}" "${GUEST_HOSTNAME}" eth0)"
+KERNEL_BOOT_ARGS="${KERNEL_BOOT_ARGS} $(network_config "${GUEST_IP}" "${TAP_IP}" "$(hostname)" eth0)"
 
 echo "Virtual CPUs: ${VCPU_COUNT}"
 echo "Memory: ${MEM_SIZE_MIB}M"
