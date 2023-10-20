@@ -1,4 +1,18 @@
 - commits:
+    - subject: Bail out if TAP device already exists
+      hash: bd1134d1c41e81f353f37f6c2fd39518d1d55c4a
+      body: |
+        A new random one will be generated on restart.
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Kyle Harding <kyle@balena.io>
+        signed-off-by: Kyle Harding <kyle@balena.io>
+      author: Kyle Harding
+  version: 0.0.14
+  title: ""
+  date: 2023-10-20T19:21:43.358Z
+- commits:
     - subject: Deprecate GUEST_HOSTNAME env var and share hostname with jailer
       hash: 099b0898965665932f45442369384a29ef588d24
       body: |
