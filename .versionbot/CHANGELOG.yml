@@ -1,4 +1,24 @@
 - commits:
+    - subject: Calculate rootfs and datafs max size in bytes
+      hash: 0caef7d5c6764c7a5d0329eb96fbc6133c76c171
+      body: |
+        Truncate does not support decimals in sizes, so some human-readable
+        sizes like 3.2T would fail.
+
+        Instead, just count the number of 1-byte blocks and provide
+        that as the size to truncate.
+
+        This can still be overridden with env vars.
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Kyle Harding <kyle@balena.io>
+        signed-off-by: Kyle Harding <kyle@balena.io>
+      author: Kyle Harding
+  version: 0.0.12
+  title: ""
+  date: 2023-10-20T13:20:11.268Z
+- commits:
     - subject: Update README
       hash: ea4e887d80d77bd7776ce517fd8e3418172e64e3
       body: ""
