@@ -116,6 +116,10 @@ FROM alpine:3.18 AS alpine-rootfs
 # hadolint ignore=DL3018
 RUN apk add --no-cache bash ca-certificates ca-certificates curl iproute2 iputils-ping lsblk
 
+# create nonroot user for healthchecks
+# hadolint ignore=DL3059
+RUN adduser --disabled-password --gecos "" nonroot
+
 FROM jailer AS alpine-test
 
 COPY --from=alpine-rootfs / /usr/src/app/rootfs/
@@ -138,6 +142,10 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends curl iproute2 iputils-ping ca-certificates util-linux \
     && rm -rf /var/lib/apt/lists/*
 
+# create nonroot user for healthchecks
+# hadolint ignore=DL3059
+RUN adduser --disabled-password --gecos "" nonroot
+
 FROM jailer AS debian-test
 
 COPY --from=debian-rootfs / /usr/src/app/rootfs/
@@ -155,6 +163,10 @@ FROM ubuntu:jammy AS ubuntu-rootfs
 RUN apt-get update \
     && apt-get install -y --no-install-recommends ca-certificates curl iproute2 iputils-ping util-linux \
     && rm -rf /var/lib/apt/lists/*
+
+# create nonroot user for healthchecks
+# hadolint ignore=DL3059
+RUN adduser --disabled-password --gecos "" nonroot
 
 FROM jailer AS ubuntu-test
 

@@ -27,3 +27,9 @@ curl -fsSL https://raw.githubusercontent.com/dylanaraps/neofetch/7.1.0/neofetch 
 mkdir -p /mnt/data
 mount -v /dev/vdb /mnt/data
 touch /mnt/data/healthy
+
+set +x
+
+su - nonroot -c "ls -al /dev"
+su - nonroot -c "echo \"Hello, World!\" >/dev/stdout"
+su - nonroot -c "echo \"Hello, World!\" >/dev/stderr"

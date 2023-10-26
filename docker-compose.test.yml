@@ -18,11 +18,11 @@ services:
         set -ex
         apk add --no-cache docker-cli-compose
 
-        docker compose run --rm --remove-orphans alpine-test | tee /dev/stderr | grep "touch /mnt/data/healthy"
+        docker compose run --rm --remove-orphans alpine-test | tee /dev/stderr | grep "Hello, World!"
 
-        docker compose run --rm --remove-orphans debian-test | tee /dev/stderr | grep "touch /mnt/data/healthy"
+        docker compose run --rm --remove-orphans debian-test | tee /dev/stderr | grep "Hello, World!"
 
-        docker compose run --rm --remove-orphans ubuntu-test | tee /dev/stderr | grep "touch /mnt/data/healthy"
+        docker compose run --rm --remove-orphans ubuntu-test | tee /dev/stderr | grep "Hello, World!"
 
         docker compose run --rm --remove-orphans dind-test | tee /dev/stderr | grep "Daemon has completed initialization"
 
