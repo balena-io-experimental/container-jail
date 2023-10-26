@@ -108,8 +108,6 @@ RUN chmod +x start.sh overlay/sbin/* overlay/usr/local/bin/*
 
 ENTRYPOINT [ "/usr/src/app/start.sh" ]
 
-CMD [ "/usr/local/bin/usage.sh" ]
-
 ###############################################
 
 # Example alpine rootfs for testing, with some debug utilities

@@ -181,6 +181,17 @@ cleanup() {
     iptables-legacy-save | grep -v "comment ${TAP_DEVICE}" | iptables-legacy-restore
 }
 
+script_root="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
+overlay_src="${script_root}/overlay"
+rootfs_src="${script_root}/rootfs"
+config_src="${script_root}/config.json"
+
+# Check that at least one argument was passed
+if [ $# -eq 0 ]; then
+    echo "At least one COMMAND instruction is required. See the project README for usage."
+    sleep infinity
+fi
+
 # Store the script arguments as the guest command
 for arg in "$@"; do
     # Remove existing quotes
@@ -192,11 +203,6 @@ for arg in "$@"; do
     arg="\"$arg\""
     cmd_str+="$arg "
 done
-
-script_root="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
-overlay_src="${script_root}/overlay"
-rootfs_src="${script_root}/rootfs"
-config_src="${script_root}/config.json"
 
 # Set default cores to same as system if not specified
 if [ -z "${VCPU_COUNT:-}" ]; then
