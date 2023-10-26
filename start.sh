@@ -317,6 +317,11 @@ echo "Creating jailer chroot..."
 mkdir -p "${boot_jail}" "${chroot_dir}"/boot
 mkdir -p "${data_jail}" "${chroot_dir}"/data
 
+if [ -f "${boot_jail}"/vmlinux.bin.lz4 ] && [ ! -f "${boot_jail}"/vmlinux.bin ]; then
+    echo "Decompressing ${boot_jail}/vmlinux.bin.lz4..."
+    lz4 -d "${boot_jail}"/vmlinux.bin.lz4 "${boot_jail}"/vmlinux.bin
+fi
+
 populate_rootfs "${rootfs_src}" "${boot_jail}"/rootfs.ext4
 populate_datafs "${data_jail}"/datafs.ext4
 setup_networking "${TAP_DEVICE}" "${TAP_IP}" "${HOST_IFACE}"

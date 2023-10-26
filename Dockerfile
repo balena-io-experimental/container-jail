@@ -18,12 +18,14 @@ RUN apt-get update \
     libelf-dev \
     libncurses-dev \
     libssl-dev \
+    lz4 \
     vim-tiny \
     && rm -rf /var/lib/apt/lists/*
 
 ARG KERNEL_BRANCH=5.10
 
-RUN git clone --depth 1 --branch "v${KERNEL_BRANCH}" https://github.com/torvalds/linux.git .
+RUN git clone --depth 1 -c advice.detachedHead=false \
+    --branch "v${KERNEL_BRANCH}" https://github.com/torvalds/linux.git .
 
 ###############################################
 
@@ -33,8 +35,9 @@ COPY vmlinux/*.config ./
 
 RUN if [ "$(uname -m)" = "aarch64" ] ; \
     then ln -sf "microvm-kernel-arm64-5.10.config" .config && make Image && \
-    cp ./arch/arm64/boot/Image ./vmlinux ; \
-    else ln -sf "microvm-kernel-x86_64-5.10.config" .config && make vmlinux ; \
+    lz4 -9 ./arch/arm64/boot/Image ./vmlinux.bin.lz4 ; \
+    else ln -sf "microvm-kernel-x86_64-5.10.config" .config && make vmlinux &&\
+    lz4 -9 ./vmlinux ./vmlinux.bin.lz4 ; \
     fi
 
 ###############################################
@@ -85,6 +88,7 @@ RUN apt-get update \
     iproute2 \
     iptables \
     jq \
+    lz4 \
     procps \
     rsync \
     tcpdump \
@@ -92,7 +96,7 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=firecracker /usr/local/bin/* /usr/local/bin/
-COPY --from=vmlinux /src/vmlinux /jail/boot/vmlinux.bin
+COPY --from=vmlinux /src/vmlinux.bin.lz4 /jail/boot/vmlinux.bin.lz4
 
 RUN addgroup --system firecracker \
     && adduser --system firecracker --ingroup firecracker \
