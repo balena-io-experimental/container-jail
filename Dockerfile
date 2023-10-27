@@ -126,11 +126,11 @@ COPY --from=alpine-rootfs / /usr/src/app/rootfs/
 
 COPY healthcheck.sh /usr/src/app/rootfs/usr/local/bin/
 RUN chmod +x /usr/src/app/rootfs/usr/local/bin/healthcheck.sh
-CMD [ "/usr/local/bin/healthcheck.sh" ]
+CMD [ "su", "-", "nonroot", "-c", "/usr/local/bin/healthcheck.sh" ]
 
 # Use livepush directives to conditionally run this test stage
 # for livepush, but not for default builds used in publishing.
-#dev-cmd-live="/usr/local/bin/healthcheck.sh ; sleep infinity"
+#dev-cmd-live="su - nonroot -c /usr/local/bin/healthcheck.sh ; sleep infinity"
 
 ###############################################
 
@@ -152,7 +152,7 @@ COPY --from=debian-rootfs / /usr/src/app/rootfs/
 
 COPY healthcheck.sh /usr/src/app/rootfs/usr/local/bin/
 RUN chmod +x /usr/src/app/rootfs/usr/local/bin/healthcheck.sh
-CMD [ "/usr/local/bin/healthcheck.sh" ]
+CMD [ "su", "-", "nonroot", "-c", "/usr/local/bin/healthcheck.sh" ]
 
 ###############################################
 
@@ -174,7 +174,7 @@ COPY --from=ubuntu-rootfs / /usr/src/app/rootfs/
 
 COPY healthcheck.sh /usr/src/app/rootfs/usr/local/bin/
 RUN chmod +x /usr/src/app/rootfs/usr/local/bin/healthcheck.sh
-CMD [ "/usr/local/bin/healthcheck.sh" ]
+CMD [ "su", "-", "nonroot", "-c", "/usr/local/bin/healthcheck.sh" ]
 
 ###############################################
 

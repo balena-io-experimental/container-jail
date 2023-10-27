@@ -2,6 +2,8 @@
 
 set -ex
 
+id
+
 date
 
 uname -a
@@ -24,12 +26,7 @@ ping -c 4 -M "do" -s 1472 "$(head -1 /etc/resolv.conf | awk '{print $2}')"
 
 curl -fsSL https://raw.githubusercontent.com/dylanaraps/neofetch/7.1.0/neofetch | bash
 
-mkdir -p /mnt/data
-mount -v /dev/vdb /mnt/data
-touch /mnt/data/healthy
-
 set +x
 
-su - nonroot -c "ls -al /dev"
-su - nonroot -c "echo \"Hello, World!\" >/dev/stdout"
-su - nonroot -c "echo \"Hello, World!\" >/dev/stderr"
+echo "Hello, World!" >/dev/stdout
+echo "Hello, World!" >/dev/stderr
