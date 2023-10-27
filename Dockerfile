@@ -126,7 +126,7 @@ CMD [ "/usr/local/bin/healthcheck.sh" ]
 
 # Use livepush directives to conditionally run this test stage
 # for livepush, but not for default builds used in publishing.
-#dev-cmd-live="/usr/local/bin/healthcheck.sh && sleep infinity"
+#dev-cmd-live="/usr/local/bin/healthcheck.sh ; sleep infinity"
 
 ###############################################
 
