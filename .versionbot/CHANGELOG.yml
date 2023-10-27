@@ -1,4 +1,44 @@
 - commits:
+    - subject: Run healthchecks as nonroot user
+      hash: 8a4f915ea78cb643429352a03ca4c75bb1ee5aae
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Kyle Harding <kyle@balena.io>
+        signed-off-by: Kyle Harding <kyle@balena.io>
+      author: Kyle Harding
+    - subject: Change permissions of /dev/console and create std symlinks
+      hash: 5ac5004bf5df7da2a7892ec52f6a16a0b280c2f2
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Kyle Harding <kyle@balena.io>
+        signed-off-by: Kyle Harding <kyle@balena.io>
+      author: Kyle Harding
+    - subject: Add stdout and stderr tests to healthcheck
+      hash: f858f76aca5f68af426a706f661e6a881f8520cc
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Kyle Harding <kyle@balena.io>
+        signed-off-by: Kyle Harding <kyle@balena.io>
+      author: Kyle Harding
+    - subject: Pull cache from sut:latest when building test images
+      hash: 4675397b86c5a7094033a99e501721d236ab8667
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Kyle Harding <kyle@balena.io>
+        signed-off-by: Kyle Harding <kyle@balena.io>
+      author: Kyle Harding
+  version: 0.0.18
+  title: ""
+  date: 2023-10-27T16:46:20.140Z
+- commits:
     - subject: Remove healthcheck.sh from overlay
       hash: 8250ffdda1040478b7f82118ba744907d95b508b
       body: ""
