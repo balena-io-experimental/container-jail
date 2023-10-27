@@ -1,4 +1,19 @@
 - commits:
+    - subject: Delete iptables rules without save/restore
+      hash: b613c84675166091161d1410c90fce746eadfd2a
+      body: |
+        Avoid using save/restore in cases where many processes may
+        be writing to iptables
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Kyle Harding <kyle@balena.io>
+        signed-off-by: Kyle Harding <kyle@balena.io>
+      author: Kyle Harding
+  version: 0.0.20
+  title: ""
+  date: 2023-10-27T17:57:12.037Z
+- commits:
     - subject: Compress kernel in deployed image
       hash: 8f6216a59b6f149083694a4395bfd5bd07d916d6
       body: |
