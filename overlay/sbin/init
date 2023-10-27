@@ -3,6 +3,13 @@
 exec 1>/dev/console
 exec 2>/dev/console
 
+chown root:tty /dev/console
+chmod 622 /dev/console
+
+ln -s /proc/self/fd/0 /dev/stdin
+ln -s /proc/self/fd/1 /dev/stdout
+ln -s /proc/self/fd/2 /dev/stderr
+
 # Mount essential file systems
 if ! mountpoint -q /proc; then
   mount -t proc none /proc
