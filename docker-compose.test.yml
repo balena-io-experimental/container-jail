@@ -11,6 +11,11 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./:/usr/src/app:ro
     working_dir: /usr/src/app
+    depends_on:
+      - alpine-test
+      - debian-test
+      - ubuntu-test
+      - dind-test
     command:
       - /bin/sh
       - -c
@@ -18,18 +23,46 @@ services:
         set -ex
         apk add --no-cache docker-cli-compose
 
-        docker compose run --rm --remove-orphans alpine-test | tee /dev/stderr | grep "Hello, World!"
+        counter=0
+        while ! docker compose logs alpine-test | grep -q "Hello, World!"; do
+          sleep 3
+          counter=$$((counter+1))
+          if [ $$counter -gt 20 ]; then
+            exit 1
+          fi
+        done
 
-        docker compose run --rm --remove-orphans debian-test | tee /dev/stderr | grep "Hello, World!"
+        counter=0
+        while ! docker compose logs debian-test | grep -q "Hello, World!"; do
+          sleep 3
+          counter=$$((counter+1))
+          if [ $$counter -gt 20 ]; then
+            exit 1
+          fi
+        done
 
-        docker compose run --rm --remove-orphans ubuntu-test | tee /dev/stderr | grep "Hello, World!"
+        counter=0
+        while ! docker compose logs ubuntu-test | grep -q "Hello, World!"; do
+          sleep 3
+          counter=$$((counter+1))
+          if [ $$counter -gt 20 ]; then
+            exit 1
+          fi
+        done
 
-        docker compose run --rm --remove-orphans dind-test | tee /dev/stderr | grep "Daemon has completed initialization"
+        counter=0
+        while ! docker compose logs dind-test | grep -q "Daemon has completed initialization"; do
+          sleep 3
+          counter=$$((counter+1))
+          if [ $$counter -gt 20 ]; then
+            exit 1
+          fi
+        done
 
   alpine-test:
     extends:
       file: docker-compose.yml
-      service: firecracker
+      service: jailer
     build:
       context: .
       target: alpine-test
@@ -40,7 +73,7 @@ services:
   debian-test:
     extends:
       file: docker-compose.yml
-      service: firecracker
+      service: jailer
     build:
       context: .
       target: debian-test
@@ -51,7 +84,7 @@ services:
   ubuntu-test:
     extends:
       file: docker-compose.yml
-      service: firecracker
+      service: jailer
     build:
       context: .
       target: ubuntu-test
@@ -62,7 +95,7 @@ services:
   dind-test:
     extends:
       file: docker-compose.yml
-      service: firecracker
+      service: jailer
     build:
       context: .
       target: dind-test
