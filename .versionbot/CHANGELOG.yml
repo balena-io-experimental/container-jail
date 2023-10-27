@@ -1,4 +1,29 @@
 - commits:
+    - subject: Create dynamic test overlays for multiple targets
+      hash: 6400c93b1d738846eb0cdf2de6f88275b6682b22
+      body: |
+        This allows for much more flexibility when setting
+        up test image dependencies, and conditionally running
+        healthcheck steps.
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Kyle Harding <kyle@balena.io>
+        signed-off-by: Kyle Harding <kyle@balena.io>
+      author: Kyle Harding
+    - subject: Add hello-world to dind test
+      hash: 9e9fe64f627adf21722de54b3383eb46c2df0571
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Kyle Harding <kyle@balena.io>
+        signed-off-by: Kyle Harding <kyle@balena.io>
+      author: Kyle Harding
+  version: 0.0.21
+  title: ""
+  date: 2023-10-27T19:32:11.821Z
+- commits:
     - subject: Delete iptables rules without save/restore
       hash: b613c84675166091161d1410c90fce746eadfd2a
       body: |
