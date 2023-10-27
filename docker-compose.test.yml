@@ -26,7 +26,7 @@ services:
         while ! docker compose logs alpine-test | grep -q "Hello, World!"; do
           sleep 3
           counter=$$((counter+1))
-          if [ $$counter -gt 20 ]; then
+          if [ $$counter -gt 30 ]; then
             exit 1
           fi
         done
@@ -35,7 +35,7 @@ services:
         while ! docker compose logs debian-test | grep -q "Hello, World!"; do
           sleep 3
           counter=$$((counter+1))
-          if [ $$counter -gt 20 ]; then
+          if [ $$counter -gt 30 ]; then
             exit 1
           fi
         done
@@ -44,7 +44,7 @@ services:
         while ! docker compose logs ubuntu-test | grep -q "Hello, World!"; do
           sleep 3
           counter=$$((counter+1))
-          if [ $$counter -gt 20 ]; then
+          if [ $$counter -gt 30 ]; then
             exit 1
           fi
         done

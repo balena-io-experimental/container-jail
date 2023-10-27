@@ -51,8 +51,18 @@ if command -v dockerd >/dev/null 2>&1; then
     *)
         # run the client tests when running as nonroot
         docker info
-        docker build /test
+        docker build /test --progress=plain --pull
         docker run hello-world
+
+        case $(uname -m) in
+        aarch64)
+            # try running arm32 docker images on arm64
+            docker build /test --progress=plain --pull --platform=linux/arm/v7
+            ;;
+        *)
+            uname -m
+            ;;
+        esac
         ;;
     esac
 fi
