@@ -106,5 +106,5 @@ services:
     command:
       - sh
       - -c
-      - /usr/local/bin/dockerd-entrypoint.sh & sleep 60
+      - /usr/local/bin/dockerd-entrypoint.sh & sleep 30 ; docker run hello-world
     hostname: dind-test

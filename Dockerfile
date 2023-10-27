@@ -157,7 +157,7 @@ CMD [ "su", "-", "nonroot", "-c", "/usr/local/bin/healthcheck.sh" ]
 
 # Use livepush directives to conditionally run this test stage
 # for livepush, but not for default builds used in publishing.
-#dev-cmd-live="su - nonroot -c /usr/local/bin/healthcheck.sh ; sleep infinity"
+# # dev-cmd-live="su - nonroot -c /usr/local/bin/healthcheck.sh ; sleep infinity"
 
 ###############################################
 
@@ -190,3 +190,7 @@ FROM docker:stable-dind AS dind-rootfs
 FROM jailer AS dind-test
 
 COPY --from=dind-rootfs / /usr/src/app/rootfs/
+
+# Use livepush directives to conditionally run this test stage
+# for livepush, but not for default builds used in publishing.
+# dev-cmd-live="/usr/local/bin/dockerd-entrypoint.sh & sleep 30 ; docker run hello-world ; sleep infinity"
