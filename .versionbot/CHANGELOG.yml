@@ -1,4 +1,17 @@
 - commits:
+    - subject: Test running arm32 docker images on arm64
+      hash: ab5328db9c2234bd1a30f2b340a99f2a3ef0f418
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Kyle Harding <kyle@balena.io>
+        signed-off-by: Kyle Harding <kyle@balena.io>
+      author: Kyle Harding
+  version: 0.0.22
+  title: ""
+  date: 2023-10-27T20:31:09.569Z
+- commits:
     - subject: Create dynamic test overlays for multiple targets
       hash: 6400c93b1d738846eb0cdf2de6f88275b6682b22
       body: |
