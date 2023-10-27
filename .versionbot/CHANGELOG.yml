@@ -1,4 +1,26 @@
 - commits:
+    - subject: Remove healthcheck.sh from overlay
+      hash: 8250ffdda1040478b7f82118ba744907d95b508b
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Kyle Harding <kyle@balena.io>
+        signed-off-by: Kyle Harding <kyle@balena.io>
+      author: Kyle Harding
+    - subject: Remove usage.sh from overlay
+      hash: f62effbe75ed642cac01b0ad214ca3c716f9e0a8
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Kyle Harding <kyle@balena.io>
+        signed-off-by: Kyle Harding <kyle@balena.io>
+      author: Kyle Harding
+  version: 0.0.17
+  title: ""
+  date: 2023-10-27T13:13:30.903Z
+- commits:
     - subject: Enable entropy and guest RNG features
       hash: 5e4e59a4143907b24c23bb55bc2d05c5d20753a0
       body: ""
