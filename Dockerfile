@@ -104,11 +104,9 @@ RUN firecracker --version \
 COPY overlay ./overlay
 COPY start.sh config.json ./
 
-RUN chmod +x start.sh overlay/sbin/* overlay/usr/local/bin/*
+RUN chmod +x start.sh overlay/sbin/*
 
 ENTRYPOINT [ "/usr/src/app/start.sh" ]
-
-CMD [ "/usr/local/bin/usage.sh" ]
 
 ###############################################
 
@@ -121,6 +119,10 @@ RUN apk add --no-cache bash ca-certificates ca-certificates curl iproute2 iputil
 FROM jailer AS alpine-test
 
 COPY --from=alpine-rootfs / /usr/src/app/rootfs/
+
+COPY healthcheck.sh /usr/src/app/rootfs/usr/local/bin/
+RUN chmod +x /usr/src/app/rootfs/usr/local/bin/healthcheck.sh
+CMD [ "/usr/local/bin/healthcheck.sh" ]
 
 # Use livepush directives to conditionally run this test stage
 # for livepush, but not for default builds used in publishing.
@@ -140,6 +142,10 @@ FROM jailer AS debian-test
 
 COPY --from=debian-rootfs / /usr/src/app/rootfs/
 
+COPY healthcheck.sh /usr/src/app/rootfs/usr/local/bin/
+RUN chmod +x /usr/src/app/rootfs/usr/local/bin/healthcheck.sh
+CMD [ "/usr/local/bin/healthcheck.sh" ]
+
 ###############################################
 
 # Example ubuntu rootfs for testing, with some debug utilities
@@ -153,6 +159,10 @@ RUN apt-get update \
 FROM jailer AS ubuntu-test
 
 COPY --from=ubuntu-rootfs / /usr/src/app/rootfs/
+
+COPY healthcheck.sh /usr/src/app/rootfs/usr/local/bin/
+RUN chmod +x /usr/src/app/rootfs/usr/local/bin/healthcheck.sh
+CMD [ "/usr/local/bin/healthcheck.sh" ]
 
 ###############################################
 

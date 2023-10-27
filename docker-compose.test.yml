@@ -33,7 +33,6 @@ services:
     build:
       context: .
       target: alpine-test
-    command: /usr/local/bin/healthcheck.sh
     hostname: alpine-test
 
   debian-test:
@@ -43,7 +42,6 @@ services:
     build:
       context: .
       target: debian-test
-    command: /usr/local/bin/healthcheck.sh
     hostname: debian-test
 
   ubuntu-test:
@@ -53,7 +51,6 @@ services:
     build:
       context: .
       target: ubuntu-test
-    command: /usr/local/bin/healthcheck.sh
     hostname: ubuntu-test
 
   dind-test:
