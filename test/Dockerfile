@@ -11,3 +11,5 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # hadolint ignore=DL3016
 RUN npm ping && npm install express lodash moment
+
+RUN dpkg --print-architecture
