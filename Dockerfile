@@ -1,3 +1,6 @@
+# ARG TEST_IMAGE=debian:bullseye-slim
+ARG TEST_IMAGE=alpine:3.18
+
 FROM debian:bullseye-slim AS linux.git
 
 WORKDIR /src
@@ -114,83 +117,19 @@ ENTRYPOINT [ "/usr/src/app/start.sh" ]
 
 ###############################################
 
-# Example alpine rootfs for testing, with some debug utilities
-FROM alpine:3.18 AS alpine-rootfs
+# hadolint ignore=DL3006
+FROM ${TEST_IMAGE} AS sut-rootfs
 
-# hadolint ignore=DL3018
-RUN apk add --no-cache bash ca-certificates ca-certificates curl npm iproute2 iputils-ping lsblk
+COPY test/ /test/
 
-# create nonroot user for healthchecks
-# hadolint ignore=DL3059
-RUN adduser --disabled-password --gecos "" nonroot
+RUN mv /test/"$(awk -F'=' '/^ID=/ {print $2}' /etc/os-release)"/* /test/ \
+    && chmod +x /test/*.sh \
+    && /test/install.sh
 
-FROM jailer AS alpine-test
+FROM jailer AS sut
 
-COPY --from=alpine-rootfs / /usr/src/app/rootfs/
+COPY --from=sut-rootfs / /usr/src/app/rootfs/
 
-COPY healthcheck.sh /usr/src/app/rootfs/usr/local/bin/
-RUN chmod +x /usr/src/app/rootfs/usr/local/bin/healthcheck.sh
-CMD [ "su", "-", "nonroot", "-c", "/usr/local/bin/healthcheck.sh" ]
+CMD [ "/test/healthcheck.sh" ]
 
-###############################################
-
-# Example debian rootfs for testing, with some debug utilities
-FROM debian:bookworm AS debian-rootfs
-
-# hadolint ignore=DL3008
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends ca-certificates curl npm iproute2 iputils-ping util-linux \
-    && rm -rf /var/lib/apt/lists/*
-
-# create nonroot user for healthchecks
-# hadolint ignore=DL3059
-RUN adduser --disabled-password --gecos "" nonroot \
-    && chmod u+s /bin/ping
-
-FROM jailer AS debian-test
-
-COPY --from=debian-rootfs / /usr/src/app/rootfs/
-
-COPY healthcheck.sh /usr/src/app/rootfs/usr/local/bin/
-RUN chmod +x /usr/src/app/rootfs/usr/local/bin/healthcheck.sh
-CMD [ "su", "-", "nonroot", "-c", "/usr/local/bin/healthcheck.sh" ]
-
-# Use livepush directives to conditionally run this test stage
-# for livepush, but not for default builds used in publishing.
-# # dev-cmd-live="su - nonroot -c /usr/local/bin/healthcheck.sh ; sleep infinity"
-
-###############################################
-
-# Example ubuntu rootfs for testing, with some debug utilities
-FROM ubuntu:jammy AS ubuntu-rootfs
-
-# hadolint ignore=DL3008
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends ca-certificates curl npm iproute2 iputils-ping util-linux \
-    && rm -rf /var/lib/apt/lists/*
-
-# create nonroot user for healthchecks
-# hadolint ignore=DL3059
-RUN adduser --disabled-password --gecos "" nonroot \
-    && chmod u+s /bin/ping
-
-FROM jailer AS ubuntu-test
-
-COPY --from=ubuntu-rootfs / /usr/src/app/rootfs/
-
-COPY healthcheck.sh /usr/src/app/rootfs/usr/local/bin/
-RUN chmod +x /usr/src/app/rootfs/usr/local/bin/healthcheck.sh
-CMD [ "su", "-", "nonroot", "-c", "/usr/local/bin/healthcheck.sh" ]
-
-###############################################
-
-# Example ubuntu rootfs for testing, with some debug utilities
-FROM docker:stable-dind AS dind-rootfs
-
-FROM jailer AS dind-test
-
-COPY --from=dind-rootfs / /usr/src/app/rootfs/
-
-# Use livepush directives to conditionally run this test stage
-# for livepush, but not for default builds used in publishing.
-# dev-cmd-live="/usr/local/bin/dockerd-entrypoint.sh & sleep 30 ; docker run hello-world ; sleep infinity"
+#dev-cmd-live="/test/healthcheck.sh ; sleep infinity"
