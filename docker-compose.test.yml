@@ -33,6 +33,8 @@ services:
     build:
       context: .
       target: alpine-test
+      cache_from:
+        - sut:latest
     hostname: alpine-test
 
   debian-test:
@@ -42,6 +44,8 @@ services:
     build:
       context: .
       target: debian-test
+      cache_from:
+        - sut:latest
     hostname: debian-test
 
   ubuntu-test:
@@ -51,6 +55,8 @@ services:
     build:
       context: .
       target: ubuntu-test
+      cache_from:
+        - sut:latest
     hostname: ubuntu-test
 
   dind-test:
@@ -60,6 +66,8 @@ services:
     build:
       context: .
       target: dind-test
+      cache_from:
+        - sut:latest
     environment:
       - DOCKER_TLS_CERTDIR=
     command:

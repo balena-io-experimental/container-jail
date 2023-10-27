@@ -172,9 +172,3 @@ FROM docker:stable-dind AS dind-rootfs
 FROM jailer AS dind-test
 
 COPY --from=dind-rootfs / /usr/src/app/rootfs/
-
-###############################################
-
-# This is the stage we want to publish, but it has no rootfs
-# so we can't use it for livepush testing.
-FROM jailer AS default
