@@ -15,7 +15,6 @@ services:
       - alpine-test
       - debian-test
       - ubuntu-test
-      - dind-test
     command:
       - /bin/sh
       - -c
@@ -50,22 +49,14 @@ services:
           fi
         done
 
-        counter=0
-        while ! docker compose logs dind-test | grep -q "Daemon has completed initialization"; do
-          sleep 3
-          counter=$$((counter+1))
-          if [ $$counter -gt 20 ]; then
-            exit 1
-          fi
-        done
-
   alpine-test:
     extends:
       file: docker-compose.yml
       service: jailer
     build:
       context: .
-      target: alpine-test
+      args:
+        TEST_IMAGE: alpine:3.18
       cache_from:
         - sut:latest
     hostname: alpine-test
@@ -76,7 +67,8 @@ services:
       service: jailer
     build:
       context: .
-      target: debian-test
+      args:
+        TEST_IMAGE: debian:bookworm-slim
       cache_from:
         - sut:latest
     hostname: debian-test
@@ -87,24 +79,8 @@ services:
       service: jailer
     build:
       context: .
-      target: ubuntu-test
+      args:
+        TEST_IMAGE: ubuntu:jammy
       cache_from:
         - sut:latest
     hostname: ubuntu-test
-
-  dind-test:
-    extends:
-      file: docker-compose.yml
-      service: jailer
-    build:
-      context: .
-      target: dind-test
-      cache_from:
-        - sut:latest
-    environment:
-      - DOCKER_TLS_CERTDIR=
-    command:
-      - sh
-      - -c
-      - /usr/local/bin/dockerd-entrypoint.sh & sleep 60
-    hostname: dind-test

@@ -9,12 +9,17 @@ date
 uname -a
 
 df -h
-lsblk
-
-printenv
 
 if [ -n "${HOSTNAME}" ]; then
     test "${HOSTNAME}" = "$(hostname)"
+fi
+
+if command -v lsblk >/dev/null 2>&1; then
+    lsblk
+fi
+
+if command -v printenv >/dev/null 2>&1; then
+    printenv
 fi
 
 if command -v ip >/dev/null 2>&1; then
@@ -36,6 +41,32 @@ fi
 if command -v curl >/dev/null 2>&1; then
     curl -fsSL https://raw.githubusercontent.com/dylanaraps/neofetch/7.1.0/neofetch | bash
 fi
+
+if command -v dockerd >/dev/null 2>&1; then
+    case $(id -u) in
+    0)
+        # start the daemon in the background when running as root
+        dockerd &
+        ;;
+    *)
+        # run the client tests when running as nonroot
+        docker info
+        docker build /test
+        docker run hello-world
+        ;;
+    esac
+fi
+
+case $(id -u) in
+"0")
+    # re-run healthchecks as nonroot user
+    exec su - nonroot -c /test/healthcheck.sh
+    ;;
+*)
+    # print the nonroot user id and continue to finish the healthchecks
+    id
+    ;;
+esac
 
 set +x
 
