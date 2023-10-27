@@ -114,7 +114,11 @@ ENTRYPOINT [ "/usr/src/app/start.sh" ]
 FROM alpine:3.18 AS alpine-rootfs
 
 # hadolint ignore=DL3018
-RUN apk add --no-cache bash ca-certificates ca-certificates curl iproute2 iputils-ping lsblk
+RUN apk add --no-cache bash ca-certificates ca-certificates curl npm iproute2 iputils-ping lsblk
+
+# create nonroot user for healthchecks
+# hadolint ignore=DL3059
+RUN adduser --disabled-password --gecos "" nonroot
 
 FROM jailer AS alpine-test
 
@@ -122,11 +126,7 @@ COPY --from=alpine-rootfs / /usr/src/app/rootfs/
 
 COPY healthcheck.sh /usr/src/app/rootfs/usr/local/bin/
 RUN chmod +x /usr/src/app/rootfs/usr/local/bin/healthcheck.sh
-CMD [ "/usr/local/bin/healthcheck.sh" ]
-
-# Use livepush directives to conditionally run this test stage
-# for livepush, but not for default builds used in publishing.
-#dev-cmd-live="/usr/local/bin/healthcheck.sh && sleep infinity"
+CMD [ "su", "-", "nonroot", "-c", "/usr/local/bin/healthcheck.sh" ]
 
 ###############################################
 
@@ -135,8 +135,13 @@ FROM debian:bookworm AS debian-rootfs
 
 # hadolint ignore=DL3008
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends curl iproute2 iputils-ping ca-certificates util-linux \
+    && apt-get install -y --no-install-recommends ca-certificates curl npm iproute2 iputils-ping util-linux \
     && rm -rf /var/lib/apt/lists/*
+
+# create nonroot user for healthchecks
+# hadolint ignore=DL3059
+RUN adduser --disabled-password --gecos "" nonroot \
+    && chmod u+s /bin/ping
 
 FROM jailer AS debian-test
 
@@ -144,7 +149,11 @@ COPY --from=debian-rootfs / /usr/src/app/rootfs/
 
 COPY healthcheck.sh /usr/src/app/rootfs/usr/local/bin/
 RUN chmod +x /usr/src/app/rootfs/usr/local/bin/healthcheck.sh
-CMD [ "/usr/local/bin/healthcheck.sh" ]
+CMD [ "su", "-", "nonroot", "-c", "/usr/local/bin/healthcheck.sh" ]
+
+# Use livepush directives to conditionally run this test stage
+# for livepush, but not for default builds used in publishing.
+#dev-cmd-live="su - nonroot -c /usr/local/bin/healthcheck.sh ; sleep infinity"
 
 ###############################################
 
@@ -153,8 +162,13 @@ FROM ubuntu:jammy AS ubuntu-rootfs
 
 # hadolint ignore=DL3008
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends ca-certificates curl iproute2 iputils-ping util-linux \
+    && apt-get install -y --no-install-recommends ca-certificates curl npm iproute2 iputils-ping util-linux \
     && rm -rf /var/lib/apt/lists/*
+
+# create nonroot user for healthchecks
+# hadolint ignore=DL3059
+RUN adduser --disabled-password --gecos "" nonroot \
+    && chmod u+s /bin/ping
 
 FROM jailer AS ubuntu-test
 
@@ -162,7 +176,7 @@ COPY --from=ubuntu-rootfs / /usr/src/app/rootfs/
 
 COPY healthcheck.sh /usr/src/app/rootfs/usr/local/bin/
 RUN chmod +x /usr/src/app/rootfs/usr/local/bin/healthcheck.sh
-CMD [ "/usr/local/bin/healthcheck.sh" ]
+CMD [ "su", "-", "nonroot", "-c", "/usr/local/bin/healthcheck.sh" ]
 
 ###############################################
 
@@ -172,9 +186,3 @@ FROM docker:stable-dind AS dind-rootfs
 FROM jailer AS dind-test
 
 COPY --from=dind-rootfs / /usr/src/app/rootfs/
-
-###############################################
-
-# This is the stage we want to publish, but it has no rootfs
-# so we can't use it for livepush testing.
-FROM jailer AS default

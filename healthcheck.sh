@@ -2,6 +2,8 @@
 
 set -ex
 
+id
+
 date
 
 uname -a
@@ -15,15 +17,27 @@ if [ -n "${HOSTNAME}" ]; then
     test "${HOSTNAME}" = "$(hostname)"
 fi
 
-ip link list
-ip route
+if command -v ip >/dev/null 2>&1; then
+    ip addr
+    ip link list
+    ip route
+fi
 
-ping -c 4 "$(ip route | awk '/default/ {print $3}')"
-ping -c 4 "$(head -1 /etc/resolv.conf | awk '{print $2}')"
-ping -c 4 -M "do" -s 1472 "$(head -1 /etc/resolv.conf | awk '{print $2}')"
+if command -v npm >/dev/null 2>&1; then
+    npm ping
+fi
 
-curl -fsSL https://raw.githubusercontent.com/dylanaraps/neofetch/7.1.0/neofetch | bash
+if command -v ping >/dev/null 2>&1; then
+    ping -c 1 "$(ip route | awk '/default/ {print $3}')"
+    ping -c 1 "$(head -1 /etc/resolv.conf | awk '{print $2}')"
+    ping -c 1 -M "do" -s 1472 "$(head -1 /etc/resolv.conf | awk '{print $2}')"
+fi
 
-mkdir -p /mnt/data
-mount -v /dev/vdb /mnt/data
-touch /mnt/data/healthy
+if command -v curl >/dev/null 2>&1; then
+    curl -fsSL https://raw.githubusercontent.com/dylanaraps/neofetch/7.1.0/neofetch | bash
+fi
+
+set +x
+
+echo "Hello, World!" >/dev/stdout
+echo "Hello, World!" >/dev/stderr

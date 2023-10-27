@@ -1,7 +1,7 @@
 version: "2.4"
 
 services:
-  firecracker:
+  jailer:
     build: .
     # Privileged is required to setup the rootfs and jailer
     # but permissions are dropped to a chroot in order to start your VM
