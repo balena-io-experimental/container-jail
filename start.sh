@@ -88,6 +88,31 @@ generate_config() {
     # jq . "${_dst_config}"
 }
 
+add_rules() {
+    local _tap_dev="${1}"
+    local _host_dev="${2}"
+
+    echo "Adding iptables rules..."
+
+    iptables-legacy -t nat -A POSTROUTING -o "${_host_dev}" -j MASQUERADE -m comment --comment "${_tap_dev}"
+    iptables-legacy -A FORWARD -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT -m comment --comment "${_tap_dev}"
+    iptables-legacy -A FORWARD -i "${_tap_dev}" -o "${_host_dev}" -j ACCEPT -m comment --comment "${_tap_dev}"
+}
+
+delete_rules() {
+    local _tap_dev="${1}"
+    local _host_dev="${2}"
+
+    echo "Deleting iptables rules..."
+
+    # delete rules matching comment
+    # iptables-legacy-save | grep -v "comment ${_tap_dev}" | iptables-legacy-restore || true
+
+    iptables-legacy -t nat -D POSTROUTING -o "${_host_dev}" -j MASQUERADE -m comment --comment "${_tap_dev}" 2>/dev/null || true
+    iptables-legacy -D FORWARD -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT -m comment --comment "${_tap_dev}" 2>/dev/null || true
+    iptables-legacy -D FORWARD -i "${_tap_dev}" -o "${_host_dev}" -j ACCEPT -m comment --comment "${_tap_dev}" 2>/dev/null || true
+}
+
 setup_networking() {
     local _tap_dev="${1}"
     local _tap_cidr="${2}"
@@ -108,20 +133,19 @@ setup_networking() {
     ip addr add "${_tap_cidr}" dev "${_tap_dev}"
     ip link set dev "${_tap_dev}" up
 
+    # local _br_dev="${_tap_dev/tap/br}"
+    # echo "Creating bridge ${_br_dev}..."
+    # ip link add name "${_br_dev}" type bridge
+    # ip link set dev "${_tap_dev}" master "${_br_dev}"
+    # iptables-legacy -t nat -A POSTROUTING -o "${_br_dev}" -j MASQUERADE
+
     echo "Enabling IP forwarding..."
     sysctl -w net.ipv4.ip_forward=1
     # sysctl -w net.ipv4.conf.${_tap_dev}.proxy_arp=1
     # sysctl -w net.ipv6.conf.${_tap_dev}.disable_ipv6=1
 
-    echo "Applying iptables rules..."
-    # delete rules matching comment
-    iptables-legacy-save | grep -v "comment ${_tap_dev}" | iptables-legacy-restore || true
-    # create FORWARD and POSTROUTING rules
-    iptables-legacy -t nat -A POSTROUTING -o "${_host_dev}" -j MASQUERADE -m comment --comment "${_tap_dev}"
-    # iptables-legacy -I FORWARD 1 -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT -m comment --comment "${_tap_dev}"
-    # iptables-legacy -I FORWARD 1 -i "${_tap_dev}" -o "${_host_dev}" -j ACCEPT -m comment --comment "${_tap_dev}"
-    iptables-legacy -A FORWARD -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT -m comment --comment "${_tap_dev}"
-    iptables-legacy -A FORWARD -i "${_tap_dev}" -o "${_host_dev}" -j ACCEPT -m comment --comment "${_tap_dev}"
+    delete_rules "${_tap_dev}" "${_host_dev}"
+    add_rules "${_tap_dev}" "${_host_dev}"
 }
 
 normalize_cidr() {
@@ -177,8 +201,7 @@ cleanup() {
     echo "Cleaning up..."
     # delete tap device
     ip link del "${TAP_DEVICE}" 2>/dev/null || true
-    # delete rules matching comment
-    iptables-legacy-save | grep -v "comment ${TAP_DEVICE}" | iptables-legacy-restore
+    delete_rules "${TAP_DEVICE}" "${HOST_IFACE}" 2>/dev/null || true
 }
 
 script_root="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
