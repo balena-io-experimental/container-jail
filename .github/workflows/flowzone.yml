@@ -30,4 +30,4 @@ jobs:
           "linux/arm64": ["self-hosted","runtime:container","ARM64"]
         }
       docker_images: >
-        ghcr.io/balena-io-experimental/ctr-jailer
+        ghcr.io/balena-io-experimental/container-jail
