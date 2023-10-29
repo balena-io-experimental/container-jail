@@ -337,6 +337,7 @@ chroot_base="/srv/jailer"
 chroot_dir="${chroot_base}/firecracker/${id}/root"
 
 echo "Creating jailer chroot..."
+rm -rf "${chroot_base}"
 mkdir -p "${boot_jail}" "${chroot_dir}"/boot
 mkdir -p "${data_jail}" "${chroot_dir}"/data
 
