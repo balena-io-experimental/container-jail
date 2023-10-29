@@ -1,4 +1,26 @@
 - commits:
+    - subject: Update project name and README
+      hash: f60bf09ddfaac96cd3af4bb776e178a58da57a68
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Kyle Harding <kyle@balena.io>
+        signed-off-by: Kyle Harding <kyle@balena.io>
+      author: Kyle Harding
+    - subject: Clear the chroot base in case /srv was not mounted tmpfs
+      hash: 039f35bb47bba11454da3fb45f7e7a63890a916e
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Kyle Harding <kyle@balena.io>
+        signed-off-by: Kyle Harding <kyle@balena.io>
+      author: Kyle Harding
+  version: 0.0.23
+  title: ""
+  date: 2023-10-29T17:47:42.960Z
+- commits:
     - subject: Test running arm32 docker images on arm64
       hash: ab5328db9c2234bd1a30f2b340a99f2a3ef0f418
       body: ""
