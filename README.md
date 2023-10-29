@@ -1,19 +1,19 @@
-# Container Jailer
+# Container Jail
 
-Append a build stage to your containers and run them as microVMs with Firecracker!
+Append a build stage to your Dockerfile and deploy as a microVM with Firecracker!
 
 ## What is Firecracker?
 
 [Firecracker](https://firecracker-microvm.github.io/) is an open source virtualization technology that is purpose-built for creating and managing secure, multi-tenant container and function-based services that provide serverless operational models. Firecracker runs workloads in lightweight virtual machines, called microVMs, which combine the security and isolation properties provided by hardware virtualization technology with the speed and flexibility of containers.
 
-## Caveats
+## Features
 
-- The guest container OS must follow [some guidelines](#guest-container)
-- Most run/compose instructions are not supported directly and require workarounds
-- Only one persistent volume is supported right now, and [it needs to be mounted](volumes)
-- Ports can not be exposed without custom iptables rules
-- Healthchecks must be part of the main process as a background task
-- Currently there is no way to exec into the guest container for debugging
+- Easy to install, just add 3 lines to an exiting Dockerfile
+- Support for several [guest container operating systems](#guest-container) without existing init services
+- Overprovisioning of resources, with configurable limits via environment variables
+- An optional persistent data volume
+- Automatic TUN/TAP interface creation with NAT rules
+- Currently includes kernel 5.10 in the guest VM
 
 ## Requirements
 
@@ -28,6 +28,9 @@ The presence of the KVM module can be checked with:
 ```bash
 lsmod | grep kvm
 ```
+
+Note that nested KVM is not currently supported on AARCH64 hardware or kernel, so guest containers requiring access
+to KVM directly are not supported.
 
 ### balenaOS
 
@@ -56,7 +59,7 @@ Add the following lines to the end of your existing Dockerfile for publishing.
 # The rest of your docker instructions up here AS my-rootfs
 
 # Include firecracker wrapper and scripts
-FROM ghcr.io/balena-io-experimental/ctr-jailer
+FROM ghcr.io/balena-io-experimental/container-jail
 
 # Copy the root file system from your existing final stage
 COPY --from=my-rootfs / /usr/src/app/rootfs
