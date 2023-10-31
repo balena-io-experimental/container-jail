@@ -1,4 +1,17 @@
 - commits:
+    - subject: Reduce requested resources when they exceed the host max
+      hash: a5625a1ce6a15232b3e951c3d1511621c21fd30b
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Kyle Harding <kyle@balena.io>
+        signed-off-by: Kyle Harding <kyle@balena.io>
+      author: Kyle Harding
+  version: 0.0.25
+  title: ""
+  date: 2023-10-31T15:16:44.912Z
+- commits:
     - subject: Only cleanup networking beyond a certain point
       hash: cf0c4d37ba2e06090b2e053437190e4496e1609a
       body: |
