@@ -1,4 +1,19 @@
 - commits:
+    - subject: Only cleanup networking beyond a certain point
+      hash: cf0c4d37ba2e06090b2e053437190e4496e1609a
+      body: |
+        This will try to avoid tearing down networking
+        in cases where the tap device already exists.
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Kyle Harding <kyle@balena.io>
+        signed-off-by: Kyle Harding <kyle@balena.io>
+      author: Kyle Harding
+  version: 0.0.24
+  title: ""
+  date: 2023-10-31T13:00:34.670Z
+- commits:
     - subject: Update project name and README
       hash: f60bf09ddfaac96cd3af4bb776e178a58da57a68
       body: ""
