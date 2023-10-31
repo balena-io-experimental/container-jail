@@ -235,29 +235,58 @@ for arg in "$@"; do
     cmd_str+="$arg "
 done
 
+total_cpu_count=$(nproc --all)
+total_mem_mib=$(($(free -m | grep -oP '\d+' | head -6 | tail -1) - 50))
+total_disk_bytes=$(df -B1 . | awk 'NR==2 {print $2}')
+
 # Set default cores to same as system if not specified
 if [ -z "${VCPU_COUNT:-}" ]; then
     VCPU_COUNT=$(nproc --all)
 fi
 
+# firecracker is limited to 32 VPUs
 if [ "${VCPU_COUNT}" -gt 32 ]; then
     echo "Maximum VCPU count is 32."
     VCPU_COUNT=32
 fi
 
+# If provided core count is more than the host has available, use the host's max
+if [ "${VCPU_COUNT}" -gt "${total_cpu_count}" ]; then
+    echo "Using max available VCPUs: ${total_cpu_count}."
+    VCPU_COUNT=${total_cpu_count}
+fi
+
 # Set default memory to same as system if not specified
 if [ -z "${MEM_SIZE_MIB:-}" ]; then
-    MEM_SIZE_MIB=$(($(free -m | grep -oP '\d+' | head -6 | tail -1) - 50))
+    MEM_SIZE_MIB=${total_mem_mib}
+fi
+
+# If provided memory size is more than the host has available, use the host's max
+if [ "${MEM_SIZE_MIB}" -gt "${total_mem_mib}" ]; then
+    echo "Using max available memory: ${total_mem_mib} MiB."
+    MEM_SIZE_MIB=${total_mem_mib}
 fi
 
 # Set default space to same as available on system if not specified
 if [ -z "${ROOTFS_SIZE:-}" ]; then
-    ROOTFS_SIZE=$(df -B1 . | awk 'NR==2 {print $2}')
+    ROOTFS_SIZE=${total_disk_bytes}
+fi
+
+# If provided rootfs size is more than the host has available, use the host's max
+if [ "${ROOTFS_SIZE}" -gt "${total_disk_bytes}" ]; then
+    echo "Using max available rootfs size: ${total_disk_bytes} bytes."
+    ROOTFS_SIZE=${total_disk_bytes}
 fi
 
 # Set default space to same as available on system if not specified
 if [ -z "${DATAFS_SIZE:-}" ]; then
-    DATAFS_SIZE=$(df -B1 . | awk 'NR==2 {print $2}')
+    DATAFS_SIZE=${total_disk_bytes}
+fi
+
+# If provided datafs size is more than the host has available, use the host's max
+if [ "${DATAFS_SIZE}" -gt "${total_disk_bytes}" ]; then
+    echo "Using max available datafs size: ${total_disk_bytes} bytes."
+    DATAFS_SIZE=${total_disk_bytes}
 fi
 
 if [ -z "${HOST_IFACE:-}" ]; then
