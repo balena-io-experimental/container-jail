@@ -124,9 +124,11 @@ setup_networking() {
         exit 1
     fi
 
+    # write a file to indicate it's safe to cleanup networking
+    # beyond this point
+    touch /tmp/.do_cleanup
+
     echo "Creating ${_tap_dev} device..."
-    # delete existing tap device
-    ip link del "${_tap_dev}" 2>/dev/null || true
     # create tap device
     ip tuntap add dev "${_tap_dev}" mode tap user firecracker
     # ip tuntap add dev "${_tap_dev}" mode tap
@@ -198,10 +200,16 @@ create_logs_fifo() {
 }
 
 cleanup() {
+    if [ ! -f /tmp/.do_cleanup ]; then
+        return
+    fi
+
     echo "Cleaning up..."
+
     # delete tap device
-    ip link del "${TAP_DEVICE}" 2>/dev/null || true
-    delete_rules "${TAP_DEVICE}" "${HOST_IFACE}" 2>/dev/null || true
+    ip link del "${TAP_DEVICE}" || true
+    delete_rules "${TAP_DEVICE}" "${HOST_IFACE}" || true
+    rm -f /tmp/.do_cleanup
 }
 
 script_root="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
