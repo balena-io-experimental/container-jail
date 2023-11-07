@@ -1,4 +1,17 @@
 - commits:
+    - subject: Create /dev/shm tmpfs device
+      hash: e9b90c0741d6271324c58dac6402fbdd2b70dcf4
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Kyle Harding <kyle@balena.io>
+        signed-off-by: Kyle Harding <kyle@balena.io>
+      author: Kyle Harding
+  version: 0.0.26
+  title: ""
+  date: 2023-11-07T19:10:44.144Z
+- commits:
     - subject: Reduce requested resources when they exceed the host max
       hash: a5625a1ce6a15232b3e951c3d1511621c21fd30b
       body: ""
