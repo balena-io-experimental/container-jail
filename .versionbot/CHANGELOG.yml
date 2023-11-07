@@ -1,4 +1,17 @@
 - commits:
+    - subject: Add localhost to /etc/hosts if missing
+      hash: 1a030e4ef5f9e872f70e9358f572e585d02906cb
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Kyle Harding <kyle@balena.io>
+        signed-off-by: Kyle Harding <kyle@balena.io>
+      author: Kyle Harding
+  version: 0.0.27
+  title: ""
+  date: 2023-11-07T20:15:37.839Z
+- commits:
     - subject: Create /dev/shm tmpfs device
       hash: e9b90c0741d6271324c58dac6402fbdd2b70dcf4
       body: ""
