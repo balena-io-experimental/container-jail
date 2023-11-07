@@ -33,6 +33,7 @@ if command -v npm >/dev/null 2>&1; then
 fi
 
 if command -v ping >/dev/null 2>&1; then
+    ping -c 1 "localhost"
     ping -c 1 "$(ip route | awk '/default/ {print $3}')"
     ping -c 1 "$(head -1 /etc/resolv.conf | awk '{print $2}')"
     ping -c 1 -M "do" -s 1472 "$(head -1 /etc/resolv.conf | awk '{print $2}')"

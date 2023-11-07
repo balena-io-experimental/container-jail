@@ -39,6 +39,10 @@ if ! mountpoint -q /sys/fs/cgroup; then
   mount -t cgroup cgroup /sys/fs/cgroup
 fi
 
+if ! grep -q localhost /etc/hosts; then
+  echo "127.0.0.1 localhost" >>/etc/hosts
+fi
+
 if [ -f /etc/profile ]; then
   # shellcheck disable=SC1091
   . /etc/profile || true
