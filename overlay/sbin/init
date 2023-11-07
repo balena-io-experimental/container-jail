@@ -31,6 +31,10 @@ if ! mountpoint -q /run; then
   mount -t tmpfs none /run
 fi
 
+if ! mountpoint -q /dev/shm; then
+  mount -t tmpfs -o rw,nosuid,nodev,noexec,relatime,size=65536k shm /dev/shm
+fi
+
 if ! mountpoint -q /sys/fs/cgroup; then
   mount -t cgroup cgroup /sys/fs/cgroup
 fi
