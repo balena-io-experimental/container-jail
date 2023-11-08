@@ -52,13 +52,19 @@ if command -v dockerd >/dev/null 2>&1; then
     *)
         # run the client tests when running as nonroot
         docker info
-        docker build /test --progress=plain --pull
         docker run hello-world
+
+        # build test image that includes systemd
+        docker build /test --progress=plain --pull -t jammy-systemd:sut
+
+        # test running a systemd in a container
+        docker run --rm -it --cap-add SYS_ADMIN -v /sys/fs/cgroup:/sys/fs/cgroup:ro jammy-systemd:sut | \
+            tee -a /dev/stderr | grep -q "Powering off"
 
         case $(uname -m) in
         aarch64)
             # try running arm32 docker images on arm64
-            docker build /test --progress=plain --pull --platform=linux/arm/v7
+            docker run arm32v7/hello-world
             ;;
         *)
             uname -m
