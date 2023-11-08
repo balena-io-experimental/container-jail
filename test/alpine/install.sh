@@ -3,7 +3,7 @@
 set -x
 
 # install packages required by healthchecks
-apk add --no-cache bash ca-certificates curl docker iproute2 iputils-ping lsblk
+apk add --no-cache bash ca-certificates curl docker iproute2 iputils-ping lsblk util-linux
 
 # create nonroot user for healthchecks
 adduser --disabled-password --gecos "" nonroot
