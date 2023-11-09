@@ -34,6 +34,7 @@ fi
 if ! mountpoint -q /run; then
   mkdir -p /run
   mount -v -t tmpfs none /run
+  ln -sf /run /var/run
 fi
 
 if ! mountpoint -q /dev/shm; then
@@ -63,6 +64,12 @@ fi
 
 if ! grep -q localhost /etc/hosts; then
   echo "127.0.0.1 localhost" >>/etc/hosts
+fi
+
+if [ -f /etc/environment ]; then
+  set -a
+  # shellcheck disable=SC1091
+  . /etc/environment
 fi
 
 if [ -f /etc/profile ]; then
