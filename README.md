@@ -104,7 +104,7 @@ Reference: <https://github.com/firecracker-microvm/firecracker/blob/main/docs/ge
 
 ### Environment Variables
 
-Environment variables made available to the jailer runtime will be written to `/etc/profile.d/fc_exports.sh` and
+Environment variables made available to the jailer runtime will be written to `/var/environment` and
 automatically sourced by the init script and then deleted.
 
 For use with secrets, it is recommended to `unset` the sensitive env vars early in your run command so they are not available
