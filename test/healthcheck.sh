@@ -2,6 +2,12 @@
 
 set -ex
 
+cleanup() {
+    echo "$0 exited with code $?"
+}
+
+trap cleanup EXIT
+
 id
 
 date
@@ -9,6 +15,9 @@ date
 uname -a
 
 df -h
+
+echo "Hello, World!" >/dev/stdout
+echo "Hello, World!" >/dev/stderr
 
 if [ -n "${HOSTNAME}" ]; then
     test "${HOSTNAME}" = "$(hostname)"
@@ -89,8 +98,3 @@ case $(id -u) in
     id
     ;;
 esac
-
-set +x
-
-echo "Hello, World!" >/dev/stdout
-echo "Hello, World!" >/dev/stderr

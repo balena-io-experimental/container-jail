@@ -23,7 +23,7 @@ services:
         apk add --no-cache docker-cli-compose
 
         counter=0
-        while ! docker compose logs alpine-test | grep -q "Hello, World!"; do
+        while ! docker compose logs alpine-test | grep -q "healthcheck.sh exited with code 0"; do
           sleep 3
           counter=$$((counter+1))
           if [ $$counter -gt 30 ]; then
@@ -32,7 +32,7 @@ services:
         done
 
         counter=0
-        while ! docker compose logs debian-test | grep -q "Hello, World!"; do
+        while ! docker compose logs debian-test | grep -q "healthcheck.sh exited with code 0"; do
           sleep 3
           counter=$$((counter+1))
           if [ $$counter -gt 30 ]; then
@@ -41,7 +41,7 @@ services:
         done
 
         counter=0
-        while ! docker compose logs ubuntu-test | grep -q "Hello, World!"; do
+        while ! docker compose logs ubuntu-test | grep -q "healthcheck.sh exited with code 0"; do
           sleep 3
           counter=$$((counter+1))
           if [ $$counter -gt 30 ]; then
