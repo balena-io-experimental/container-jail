@@ -52,7 +52,21 @@ if command -v dockerd >/dev/null 2>&1; then
     *)
         # run the client tests when running as nonroot
         docker info
-        docker run hello-world
+        docker run --rm hello-world
+
+        docker pull --platform linux/arm/v7 arm32v7/hello-world
+
+        case $(uname -m) in
+        aarch64)
+            # try running arm32 docker images on arm64
+            docker run --rm arm32v7/hello-world
+            ;;
+        *)
+            # try running arm32 docker images on x86_64 with QEMU emulation
+            docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+            docker run --rm arm32v7/hello-world
+            ;;
+        esac
 
         # build test image that includes systemd
         docker build /test --progress=plain --pull -t jammy-systemd:sut
@@ -60,16 +74,6 @@ if command -v dockerd >/dev/null 2>&1; then
         # test running a systemd in a container
         docker run --rm -it --cap-add SYS_ADMIN -v /sys/fs/cgroup:/sys/fs/cgroup:ro jammy-systemd:sut | \
             tee -a /dev/stderr | grep -q "Powering off"
-
-        case $(uname -m) in
-        aarch64)
-            # try running arm32 docker images on arm64
-            docker run arm32v7/hello-world
-            ;;
-        *)
-            uname -m
-            ;;
-        esac
         ;;
     esac
 fi
