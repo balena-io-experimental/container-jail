@@ -47,23 +47,34 @@ if command -v dockerd >/dev/null 2>&1; then
     case $(id -u) in
     0)
         # start the daemon in the background when running as root
-        dockerd &
+        dockerd -D &
+        sleep 5
         ;;
     *)
         # run the client tests when running as nonroot
+        docker version
         docker info
-        docker build /test --progress=plain --pull
-        docker run hello-world
+        docker run --rm hello-world
+        docker pull --platform linux/arm/v7 arm32v7/hello-world
 
         case $(uname -m) in
         aarch64)
             # try running arm32 docker images on arm64
-            docker build /test --progress=plain --pull --platform=linux/arm/v7
+            docker run --rm arm32v7/hello-world
             ;;
         *)
-            uname -m
+            # try running arm32 docker images on x86_64 with QEMU emulation
+            docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+            docker run --rm arm32v7/hello-world
             ;;
         esac
+
+        # build test image that includes systemd
+        docker build /test --progress=plain --pull -t jammy-systemd:sut
+
+        # test running a systemd in a container
+        docker run --rm -it --cap-add SYS_ADMIN -v /sys/fs/cgroup:/sys/fs/cgroup:ro jammy-systemd:sut |
+            tee -a /dev/stderr | grep -q "Powering off"
         ;;
     esac
 fi

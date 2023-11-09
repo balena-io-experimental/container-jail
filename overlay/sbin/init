@@ -12,35 +12,65 @@ ln -s /proc/self/fd/2 /dev/stderr
 
 # Mount essential file systems
 if ! mountpoint -q /proc; then
-  mount -t proc none /proc
+  mkdir -p /proc
+  mount -v -t proc none /proc
 fi
 
 if ! mountpoint -q /sys; then
-  mount -t sysfs none /sys
+  mkdir -p /sys
+  mount -v -t sysfs none /sys
 fi
 
 if ! mountpoint -q /dev; then
-  mount -t devtmpfs none /dev
+  mkdir -p /dev
+  mount -v -t devtmpfs none /dev
 fi
 
 if ! mountpoint -q /tmp; then
-  mount -t tmpfs none /tmp
+  mkdir -p /tmp
+  mount -v -t tmpfs none /tmp
 fi
 
 if ! mountpoint -q /run; then
-  mount -t tmpfs none /run
+  mkdir -p /run
+  mount -v -t tmpfs none /run
+  ln -sf /run /var/run
 fi
 
 if ! mountpoint -q /dev/shm; then
-  mount -t tmpfs -o rw,nosuid,nodev,noexec,relatime,size=65536k shm /dev/shm
+  mkdir -p /dev/shm
+  mount -v -t tmpfs -o rw,nosuid,nodev,noexec,relatime,size=65536k shm /dev/shm
 fi
 
 if ! mountpoint -q /sys/fs/cgroup; then
-  mount -t cgroup cgroup /sys/fs/cgroup
+  mkdir -p /sys/fs/cgroup
+  # mount -v -t cgroup cgroup /sys/fs/cgroup
+  mount -v -t tmpfs cgroup_root /sys/fs/cgroup
+fi
+
+# Create the cgroup hierarchy
+for d in cpuset cpu cpuacct blkio memory devices freezer net_cls perf_event net_prio hugetlb pids; do
+  if [ ! -d /sys/fs/cgroup/"$d" ]; then
+    mkdir -p /sys/fs/cgroup/"$d"
+    mount -v -t cgroup -o "$d" cgroup /sys/fs/cgroup/"$d"
+  fi
+done
+
+# Mount the cgroup hierarchy for systemd
+if [ ! -d /sys/fs/cgroup/systemd ]; then
+  mkdir -p /sys/fs/cgroup/systemd
+  mount -v -t cgroup -o none,name=systemd cgroup /sys/fs/cgroup/systemd
 fi
 
 if ! grep -q localhost /etc/hosts; then
   echo "127.0.0.1 localhost" >>/etc/hosts
+fi
+
+if [ -f /etc/environment ]; then
+  set -a
+  # shellcheck disable=SC1091
+  . /etc/environment
+  set +a
 fi
 
 if [ -f /etc/profile ]; then
