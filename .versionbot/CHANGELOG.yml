@@ -1,4 +1,35 @@
 - commits:
+    - subject: Add docker tests for debian and ubuntu
+      hash: 7028679d46c313a1d0c48940bd3e5d716aab80fd
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Kyle Harding <kyle@balena.io>
+        signed-off-by: Kyle Harding <kyle@balena.io>
+      author: Kyle Harding
+    - subject: Add QEMU emulation test to x86_64 healthcheck
+      hash: 73dbce0b6331acf3d8317fe878e575eab1b70716
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Kyle Harding <kyle@balena.io>
+        signed-off-by: Kyle Harding <kyle@balena.io>
+      author: Kyle Harding
+    - subject: Create the cgroup hierarchy on init
+      hash: e487e9bd519cb9cdccf40f2fab090695c90187ad
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Kyle Harding <kyle@balena.io>
+        signed-off-by: Kyle Harding <kyle@balena.io>
+      author: Kyle Harding
+  version: 0.0.28
+  title: ""
+  date: 2023-11-09T20:48:40.978Z
+- commits:
     - subject: Add localhost to /etc/hosts if missing
       hash: 1a030e4ef5f9e872f70e9358f572e585d02906cb
       body: ""
