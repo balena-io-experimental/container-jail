@@ -66,15 +66,26 @@ if ! grep -q localhost /etc/hosts; then
   echo "127.0.0.1 localhost" >>/etc/hosts
 fi
 
+if [ -f /var/environment ]; then
+  set -a
+  # shellcheck disable=SC1091
+  . /var/environment
+  set +a
+fi
+
+# clear this file after export in case it contained secrets
+rm -f /var/environment
+
+# this is present in most base images to set up the environment
+if [ -f /etc/profile ]; then
+  # shellcheck disable=SC1091
+  . /etc/profile || true
+fi
+
+# this is where ubuntu base images set PATH
 if [ -f /etc/environment ]; then
   set -a
   # shellcheck disable=SC1091
   . /etc/environment
   set +a
-fi
-
-if [ -f /etc/profile ]; then
-  # shellcheck disable=SC1091
-  . /etc/profile || true
-  rm -f /etc/profile.d/fc_exports.sh
 fi
