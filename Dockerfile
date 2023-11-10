@@ -1,6 +1,6 @@
 # ARG TEST_IMAGE=debian:bullseye-slim
-# ARG TEST_IMAGE=alpine:3.18
-ARG TEST_IMAGE=ubuntu:jammy
+ARG TEST_IMAGE=alpine:3.18
+# ARG TEST_IMAGE=ubuntu:jammy
 
 FROM debian:bullseye-slim AS linux.git
 
@@ -123,9 +123,7 @@ FROM ${TEST_IMAGE} AS sut-rootfs
 
 COPY test/ /test/
 
-RUN mv /test/"$(awk -F'=' '/^ID=/ {print $2}' /etc/os-release)"/* /test/ \
-    && chmod +x /test/*.sh \
-    && /test/install.sh
+RUN chmod +x /test/*.sh && /test/setup.sh
 
 FROM jailer AS sut
 

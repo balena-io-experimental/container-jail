@@ -1,9 +1,14 @@
 #!/bin/sh
 
+# This script is run as the healthcheck command for the VM image and
+# the logs are grepped for the exit status message to determine success/fail.
+
 set -ex
 
 cleanup() {
-    echo "$0 exited with code $?"
+    status=$?
+    echo "$0 exited with status $status"
+    exit ${status}
 }
 
 trap cleanup EXIT
@@ -79,11 +84,11 @@ if command -v dockerd >/dev/null 2>&1; then
         esac
 
         # build test image that includes systemd
-        docker build /test --progress=plain --pull -t jammy-systemd:sut
+        docker build /test/systemd --progress=plain --pull -t systemd:sut
 
         # test running a systemd in a container
-        docker run --rm -it --cap-add SYS_ADMIN -v /sys/fs/cgroup:/sys/fs/cgroup:ro jammy-systemd:sut |
-            tee -a /dev/stderr | grep -q "Powering off"
+        docker run --rm -it --cap-add SYS_ADMIN -v /sys/fs/cgroup:/sys/fs/cgroup:ro systemd:sut |
+            tee -a /dev/stderr | grep -q "Powering off."
         ;;
     esac
 fi
