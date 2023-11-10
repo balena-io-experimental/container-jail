@@ -1,4 +1,17 @@
 - commits:
+    - subject: Use /var/environment for runtime secrets and env vars
+      hash: dd013a430bccf66666b1fb8541b619894e4be6ea
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Kyle Harding <kyle@balena.io>
+        signed-off-by: Kyle Harding <kyle@balena.io>
+      author: Kyle Harding
+  version: 0.0.29
+  title: ""
+  date: 2023-11-10T13:21:06.129Z
+- commits:
     - subject: Add docker tests for debian and ubuntu
       hash: 7028679d46c313a1d0c48940bd3e5d716aab80fd
       body: ""
