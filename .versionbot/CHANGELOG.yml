@@ -1,4 +1,18 @@
 - commits:
+    - subject: Merge test VM install scripts into setup.sh
+      hash: 13daeaf004910f3dc79f78a3a37ed0fb6fa7ca7c
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Kyle Harding <kyle@balena.io>
+        signed-off-by: Kyle Harding <kyle@balena.io>
+      author: Kyle Harding
+      nested: []
+  version: 0.0.30
+  title: ""
+  date: 2023-11-10T15:01:02.674Z
+- commits:
     - subject: Use /var/environment for runtime secrets and env vars
       hash: dd013a430bccf66666b1fb8541b619894e4be6ea
       body: ""
