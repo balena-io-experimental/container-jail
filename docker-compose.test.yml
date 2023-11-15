@@ -60,6 +60,9 @@ services:
       cache_from:
         - sut:latest
     hostname: alpine-test
+    environment:
+      - DOCKERHUB_USERNAME=${DOCKERHUB_USERNAME:-}
+      - DOCKERHUB_PASSWORD=${DOCKERHUB_PASSWORD:-}
 
   debian-test:
     extends:
@@ -72,6 +75,9 @@ services:
       cache_from:
         - sut:latest
     hostname: debian-test
+    environment:
+      - DOCKERHUB_USERNAME=${DOCKERHUB_USERNAME:-}
+      - DOCKERHUB_PASSWORD=${DOCKERHUB_PASSWORD:-}
 
   ubuntu-test:
     extends:
@@ -84,3 +90,6 @@ services:
       cache_from:
         - sut:latest
     hostname: ubuntu-test
+    environment:
+      - DOCKERHUB_USERNAME=${DOCKERHUB_USERNAME:-}
+      - DOCKERHUB_PASSWORD=${DOCKERHUB_PASSWORD:-}
