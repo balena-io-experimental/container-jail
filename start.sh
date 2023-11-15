@@ -342,11 +342,11 @@ if ! ls "${rootfs_src}" &>/dev/null; then
     sleep infinity
 fi
 
-# Check for hardware acceleration
-if ! ls /dev/kvm &>/dev/null; then
-    echo "KVM hardware acceleration unavailable. Pass --device /dev/kvm in your Docker run command."
-    sleep infinity
-fi
+# # Check for hardware acceleration
+# if ! ls /dev/kvm &>/dev/null; then
+#     echo "KVM hardware acceleration unavailable. Pass --device /dev/kvm in your Docker run command."
+#     sleep infinity
+# fi
 
 trap cleanup EXIT
 
@@ -397,14 +397,32 @@ mount --bind "${data_jail}" "${chroot_dir}"/data
 # /usr/local/bin/firecracker --help
 # /usr/local/bin/jailer --help
 
-echo "Starting firecracker via jailer..."
-# https://github.com/firecracker-microvm/firecracker/blob/main/docs/jailer.md
-/usr/local/bin/jailer --id "${id}" \
-    --exec-file /usr/local/bin/firecracker \
-    --chroot-base-dir "${chroot_base}" \
-    --uid "$(id -u firecracker)" \
-    --gid "$(id -g firecracker)" \
-    -- \
-    --no-api \
-    --config-file /boot/config.json \
-    --log-path /boot/logs.fifo
+# Check for hardware acceleration
+if ls /dev/kvm &>/dev/null; then
+    echo "Starting firecracker VM with hardware acceleration..."
+    # https://github.com/firecracker-microvm/firecracker/blob/main/docs/jailer.md
+    /usr/local/bin/jailer --id "${id}" \
+        --exec-file /usr/local/bin/firecracker \
+        --chroot-base-dir "${chroot_base}" \
+        --uid "$(id -u firecracker)" \
+        --gid "$(id -g firecracker)" \
+        -- \
+        --no-api \
+        --config-file /boot/config.json \
+        --log-path /boot/logs.fifo
+else
+    echo "Starting QEMU VM with user emulation..."
+    /usr/local/bin/jailer --id "${id}" \
+        --exec-file /usr/local/bin/qemu-system-"$(uname -m)" \
+        --chroot-base-dir "${chroot_base}" \
+        --uid "$(id -u firecracker)" \
+        --gid "$(id -g firecracker)" \
+        -- \
+        -kernel /boot/vmlinux.bin \
+        -append "${KERNEL_BOOT_ARGS}" \
+        -drive format=raw,file=/boot/rootfs.ext4 \
+        -drive format=raw,file=/data/datafs.ext4 \
+        -m "${MEM_SIZE_MIB}M" \
+        -smp 2 \
+        -nographic
+fi
