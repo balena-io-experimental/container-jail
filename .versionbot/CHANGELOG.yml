@@ -1,4 +1,19 @@
 - commits:
+    - subject: Optionally log in to DockerHub during healthchecks
+      hash: e49608bd122c70b04e723bc244e105c96514c9bf
+      body: |
+        This will help avoid rate limiting by DockerHub.
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Kyle Harding <kyle@balena.io>
+        signed-off-by: Kyle Harding <kyle@balena.io>
+      author: Kyle Harding
+      nested: []
+  version: 0.0.32
+  title: ""
+  date: 2023-11-16T14:49:31.701Z
+- commits:
     - subject: Create /dev/fd symlink so anonymous pipes can be created
       hash: 91bfde1a56e261157ba0252fdded8d04d485ff36
       body: |
