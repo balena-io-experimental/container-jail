@@ -28,8 +28,8 @@ echo "Testing stderr" >&2
 echo "Testing stdout" >/dev/stdout
 echo "Testing stderr" >/dev/stderr
 
-echo "Testing stdout" 1> >(tee /tmp/stdout)
-echo "Testing stderr" 2> >(tee /tmp/stderr)
+echo "Testing stdout" 1> >(tee "$HOME"/stdout)
+echo "Testing stderr" 2> >(tee "$HOME"/stderr)
 
 if [ -n "${HOSTNAME}" ]; then
     test "${HOSTNAME}" = "$(hostname)"
