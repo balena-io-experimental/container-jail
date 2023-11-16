@@ -1,4 +1,18 @@
 - commits:
+    - subject: Avoid permission denied when writing to test files created by root
+      hash: 9977c922fc8645488f62d7ac53747f066a323614
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Kyle Harding <kyle@balena.io>
+        signed-off-by: Kyle Harding <kyle@balena.io>
+      author: Kyle Harding
+      nested: []
+  version: 0.0.33
+  title: ""
+  date: 2023-11-16T16:03:37.376Z
+- commits:
     - subject: Optionally log in to DockerHub during healthchecks
       hash: e49608bd122c70b04e723bc244e105c96514c9bf
       body: |
