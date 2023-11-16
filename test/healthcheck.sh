@@ -75,6 +75,11 @@ if command -v dockerd >/dev/null 2>&1; then
         # run the client tests when running as nonroot
         docker version
         docker info
+
+        if [ -n "${DOCKERHUB_USERNAME}" ] && [ -n "${DOCKERHUB_PASSWORD}" ]; then
+            echo "${DOCKERHUB_PASSWORD}" | docker login --username "${DOCKERHUB_USERNAME}" --password-stdin
+        fi
+
         docker run --rm hello-world
         docker pull --platform linux/arm/v7 arm32v7/hello-world
 
@@ -103,7 +108,7 @@ fi
 case $(id -u) in
 "0")
     # re-run healthchecks as nonroot user
-    exec su - nonroot -c /test/healthcheck.sh
+    exec su - nonroot -c "DOCKERHUB_USERNAME=${DOCKERHUB_USERNAME} DOCKERHUB_PASSWORD=${DOCKERHUB_PASSWORD} /test/healthcheck.sh"
     ;;
 *)
     # print the nonroot user id and continue to finish the healthchecks
