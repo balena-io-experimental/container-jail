@@ -31,6 +31,8 @@ echo "Testing stderr" >/dev/stderr
 echo "Testing stdout" 1> >(tee "$HOME"/stdout)
 echo "Testing stderr" 2> >(tee "$HOME"/stderr)
 
+script -q -e -c "echo 'Testing pseudo-terminal'"
+
 if [ -n "${HOSTNAME}" ]; then
     test "${HOSTNAME}" = "$(hostname)"
 fi

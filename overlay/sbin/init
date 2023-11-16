@@ -45,6 +45,11 @@ if ! mountpoint -q /dev/shm; then
   mount -v -t tmpfs -o rw,nosuid,nodev,noexec,relatime,size=65536k shm /dev/shm
 fi
 
+if ! mountpoint -q /dev/pts; then
+  mkdir -p /dev/pts
+  mount -v -t devpts devpts /dev/pts
+fi
+
 if ! mountpoint -q /sys/fs/cgroup; then
   mkdir -p /sys/fs/cgroup
   # mount -v -t cgroup cgroup /sys/fs/cgroup
