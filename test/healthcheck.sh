@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
 # This script is run as the healthcheck command for the VM image and
 # the logs are grepped for the exit status message to determine success/fail.
@@ -21,8 +21,15 @@ uname -a
 
 df -h
 
-echo "Hello, World!" >/dev/stdout
-echo "Hello, World!" >/dev/stderr
+ls -al /dev/
+
+echo "Testing stdout" >&1
+echo "Testing stderr" >&2
+echo "Testing stdout" >/dev/stdout
+echo "Testing stderr" >/dev/stderr
+
+echo "Testing stdout" 1> >(tee /tmp/stdout)
+echo "Testing stderr" 2> >(tee /tmp/stderr)
 
 if [ -n "${HOSTNAME}" ]; then
     test "${HOSTNAME}" = "$(hostname)"
