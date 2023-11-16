@@ -1,4 +1,30 @@
 - commits:
+    - subject: Create /dev/fd symlink so anonymous pipes can be created
+      hash: 91bfde1a56e261157ba0252fdded8d04d485ff36
+      body: |
+        In order to support process substitution and anonymous
+        pipes we need to ensure the /dev/fd path exists.
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Kyle Harding <kyle@balena.io>
+        signed-off-by: Kyle Harding <kyle@balena.io>
+      author: Kyle Harding
+      nested: []
+    - subject: Test redirection of stdout and stderr
+      hash: 3c4c916fd04d74e4032289d2861aa8fd99faebe3
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Kyle Harding <kyle@balena.io>
+        signed-off-by: Kyle Harding <kyle@balena.io>
+      author: Kyle Harding
+      nested: []
+  version: 0.0.31
+  title: ""
+  date: 2023-11-16T14:26:44.863Z
+- commits:
     - subject: Merge test VM install scripts into setup.sh
       hash: 13daeaf004910f3dc79f78a3a37ed0fb6fa7ca7c
       body: ""
