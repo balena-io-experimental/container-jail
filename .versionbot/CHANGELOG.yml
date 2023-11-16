@@ -1,4 +1,18 @@
 - commits:
+    - subject: Create missing /dev/pts device
+      hash: efd1c107babffc6f35aaa835227c2b5fe494b96d
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Kyle Harding <kyle@balena.io>
+        signed-off-by: Kyle Harding <kyle@balena.io>
+      author: Kyle Harding
+      nested: []
+  version: 0.0.34
+  title: ""
+  date: 2023-11-16T16:22:31.541Z
+- commits:
     - subject: Avoid permission denied when writing to test files created by root
       hash: 9977c922fc8645488f62d7ac53747f066a323614
       body: ""
