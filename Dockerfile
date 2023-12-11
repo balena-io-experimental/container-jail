@@ -31,6 +31,10 @@ ARG KERNEL_BRANCH=5.10
 RUN git clone --depth 1 -c advice.detachedHead=false \
     --branch "v${KERNEL_BRANCH}" https://github.com/torvalds/linux.git .
 
+COPY vmlinux/*.patch ./
+
+RUN git apply -v ./*.patch
+
 ###############################################
 
 FROM linux.git AS vmlinux
