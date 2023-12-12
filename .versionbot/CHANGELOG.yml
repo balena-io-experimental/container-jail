@@ -1,4 +1,23 @@
 - commits:
+    - subject: Enable KVM in x86_64 guest kernels
+      hash: e9ac1be9ee1a057b89a181fd82ad029a46bd328a
+      body: |
+        Nested KVM is not supported on aarch64 hardware or kernels
+        so we can only enable this on x86_64 for now.
+
+        This functionality allows us to test KVM features via CI
+        on VM self-hosted GitHub runners. Hence "nested".
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Kyle Harding <kyle@balena.io>
+        signed-off-by: Kyle Harding <kyle@balena.io>
+      author: Kyle Harding
+      nested: []
+  version: 0.0.35
+  title: ""
+  date: 2023-12-12T14:35:00.238Z
+- commits:
     - subject: Create missing /dev/pts device
       hash: efd1c107babffc6f35aaa835227c2b5fe494b96d
       body: ""
