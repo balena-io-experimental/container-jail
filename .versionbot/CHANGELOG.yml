@@ -1,4 +1,30 @@
 - commits:
+    - subject: Allow providing extra kernel boot args
+      hash: 90113389fa05c33daf544ffafb3c766a146812f0
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Kyle Harding <kyle@balena.io>
+        signed-off-by: Kyle Harding <kyle@balena.io>
+      author: Kyle Harding
+      nested: []
+    - subject: Add uname26 personality patches from balena-generic @ cff3eed
+      hash: 9b428b5962c03715cc9c875ff29b5346105633f3
+      body: |
+        This allows to use this kernel in our ARM builder that require armv7l
+        and armv6l machine strings to build.
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Kyle Harding <kyle@balena.io>
+        signed-off-by: Kyle Harding <kyle@balena.io>
+      author: Kyle Harding
+      nested: []
+  version: 0.0.36
+  title: ""
+  date: 2023-12-14T23:46:32.054Z
+- commits:
     - subject: Enable KVM in x86_64 guest kernels
       hash: e9ac1be9ee1a057b89a181fd82ad029a46bd328a
       body: |
