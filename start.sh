@@ -322,6 +322,10 @@ if [ -z "${KERNEL_BOOT_ARGS:-}" ]; then
     fi
 fi
 
+if [ -n "${EXTRA_KERNEL_BOOT_ARGS:-}" ]; then
+    KERNEL_BOOT_ARGS="${KERNEL_BOOT_ARGS} ${EXTRA_KERNEL_BOOT_ARGS}"
+fi
+
 KERNEL_BOOT_ARGS="${KERNEL_BOOT_ARGS} $(network_config "${GUEST_IP}" "${TAP_IP}" "$(hostname)" eth0)"
 
 echo "Virtual CPUs: ${VCPU_COUNT}"

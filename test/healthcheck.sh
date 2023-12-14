@@ -17,7 +17,21 @@ id
 
 date
 
-uname -a
+userspace_arch="$(dpkg --print-architecture 2>/dev/null || apk --print-arch)"
+case ${userspace_arch} in
+x86_64|amd64)
+    uname -a | grep x86_64
+    ;;
+aarch64|arm64)
+    uname -a | grep aarch64
+    setarch linux32 uname -m | tee /dev/stderr | grep armv7l
+    setarch linux32 --uname-2.6 uname -m | tee /dev/stderr | grep armv6l
+    ;;
+*)
+    echo "Unsupported architecture: ${userspace_arch}"
+    exit 1
+    ;;
+esac
 
 df -h
 
@@ -51,15 +65,20 @@ if command -v ip >/dev/null 2>&1; then
     ip route
 fi
 
-# nested virtualization is not available on aarch64
-if [ -r /dev/kvm ]; then
+case $(uname -m) in
+x86_64)
     ls -l /dev/kvm
-    test -w /dev/kvm
-
+    test -w /dev/kvm || test "$(id -u)" != 0
     if which kvm-ok >/dev/null; then
         kvm-ok
     fi
-fi
+    ;;
+*)
+    # https://github.com/balena-io-experimental/container-jail/issues/44
+    # https://github.com/firecracker-microvm/firecracker/issues/1721
+    echo "Nested KVM unavailable on this architecture!"
+    ;;
+esac
 
 if command -v npm >/dev/null 2>&1; then
     npm ping
