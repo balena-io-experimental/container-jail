@@ -1,4 +1,18 @@
 - commits:
+    - subject: Enable basic NFS client features
+      hash: 26c0d2347732a5020cae2a488629997349fc53a8
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Kyle Harding <kyle@balena.io>
+        signed-off-by: Kyle Harding <kyle@balena.io>
+      author: Kyle Harding
+      nested: []
+  version: 0.0.37
+  title: ""
+  date: 2024-02-13T21:56:08.259Z
+- commits:
     - subject: Allow providing extra kernel boot args
       hash: 90113389fa05c33daf544ffafb3c766a146812f0
       body: ""
