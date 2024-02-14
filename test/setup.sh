@@ -24,7 +24,7 @@ ubuntu | debian)
 
     # install packages required by healthchecks
     apt-get update
-    apt-get install -y ca-certificates cpu-checker curl gnupg iproute2 iptables iputils-ping kmod util-linux
+    apt-get install -y ca-certificates cpu-checker curl gnupg iproute2 iptables iputils-ping kmod util-linux nfs-common cachefilesd
 
     # Add Docker's official GPG key
     install -m 0755 -d /etc/apt/keyrings
@@ -53,7 +53,7 @@ ubuntu | debian)
     ;;
 alpine)
     # install packages required by healthchecks
-    apk add --no-cache bash ca-certificates curl docker iproute2 iputils-ping kmod lsblk util-linux
+    apk add --no-cache bash ca-certificates curl docker iproute2 iputils-ping kmod lsblk util-linux nfs-utils
 
     # create nonroot user for healthchecks
     adduser --disabled-password --gecos "" nonroot
