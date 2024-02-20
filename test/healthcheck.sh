@@ -91,6 +91,19 @@ if command -v ping >/dev/null 2>&1; then
     ping -c 1 -M "do" -s 1472 "$(head -1 /etc/resolv.conf | awk '{print $2}')"
 fi
 
+# test mounting nfs shares
+# if this share goes away, just delete this test, no one will miss it
+case $(id -u) in
+    0)
+        # (modprobe cachefiles && /sbin/cachefilesd -s) || true
+        mkdir -p /var/lib/yocto
+        mount -v -t nfs nfs.product-os.io:/ /var/lib/yocto -o fsc
+        ls -al /var/lib/yocto/
+        ;;
+    *)
+        ;;
+esac
+
 if command -v curl >/dev/null 2>&1; then
     curl -fsSL https://raw.githubusercontent.com/dylanaraps/neofetch/7.1.0/neofetch | bash
 fi
