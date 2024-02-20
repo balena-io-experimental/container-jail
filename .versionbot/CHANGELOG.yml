@@ -1,4 +1,28 @@
 - commits:
+    - subject: Test mounting an nfs share
+      hash: 0dabf12e7be3acb0f099651143ba0fed23ab1904
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Kyle Harding <kyle@balena.io>
+        signed-off-by: Kyle Harding <kyle@balena.io>
+      author: Kyle Harding
+      nested: []
+    - subject: Add NFSv4 support to the kernel
+      hash: c1ca7a9864f0766e68329616cef5fcd26a5e084c
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Kyle Harding <kyle@balena.io>
+        signed-off-by: Kyle Harding <kyle@balena.io>
+      author: Kyle Harding
+      nested: []
+  version: 0.0.38
+  title: ""
+  date: 2024-02-20T18:49:58.051Z
+- commits:
     - subject: Enable basic NFS client features
       hash: 26c0d2347732a5020cae2a488629997349fc53a8
       body: ""
