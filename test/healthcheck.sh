@@ -19,10 +19,10 @@ date
 
 userspace_arch="$(dpkg --print-architecture 2>/dev/null || apk --print-arch)"
 case ${userspace_arch} in
-x86_64|amd64)
+x86_64 | amd64)
     uname -a | grep x86_64
     ;;
-aarch64|arm64)
+aarch64 | arm64)
     uname -a | grep aarch64
     setarch linux32 uname -m | tee /dev/stderr | grep armv7l
     setarch linux32 --uname-2.6 uname -m | tee /dev/stderr | grep armv6l
@@ -65,6 +65,26 @@ if command -v ip >/dev/null 2>&1; then
     ip route
 fi
 
+case $(id -u) in
+0)
+    if command -v iptables >/dev/null 2>&1; then
+        iptables -V
+        iptables -L
+    fi
+
+    if command -v iptables-legacy >/dev/null 2>&1; then
+        iptables-legacy -V
+        iptables-legacy -L
+    fi
+
+    if command -v iptables-nft >/dev/null 2>&1; then
+        iptables-nft -V
+        iptables-nft -L
+    fi
+    ;;
+*) ;;
+esac
+
 case $(uname -m) in
 x86_64)
     ls -l /dev/kvm
@@ -94,14 +114,13 @@ fi
 # test mounting nfs shares
 # if this share goes away, just delete this test, no one will miss it
 case $(id -u) in
-    0)
-        # (modprobe cachefiles && /sbin/cachefilesd -s) || true
-        mkdir -p /var/lib/yocto
-        mount -v -t nfs nfs.product-os.io:/ /var/lib/yocto -o fsc
-        ls -al /var/lib/yocto/
-        ;;
-    *)
-        ;;
+0)
+    # (modprobe cachefiles && /sbin/cachefilesd -s) || true
+    mkdir -p /var/lib/yocto
+    mount -v -t nfs nfs.product-os.io:/ /var/lib/yocto -o fsc
+    ls -al /var/lib/yocto/
+    ;;
+*) ;;
 esac
 
 if command -v curl >/dev/null 2>&1; then
