@@ -1,4 +1,18 @@
 - commits:
+    - subject: Enable NFT_COMPAT in the kernel for nf_tables
+      hash: 2677463ea2ee104aac59242807f4e957c45daa0b
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Kyle Harding <kyle@balena.io>
+        signed-off-by: Kyle Harding <kyle@balena.io>
+      author: Kyle Harding
+      nested: []
+  version: 0.0.39
+  title: ""
+  date: 2024-02-26T19:03:51.050Z
+- commits:
     - subject: Test mounting an nfs share
       hash: 0dabf12e7be3acb0f099651143ba0fed23ab1904
       body: ""
