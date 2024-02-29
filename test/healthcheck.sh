@@ -80,6 +80,9 @@ case $(id -u) in
     if command -v iptables-nft >/dev/null 2>&1; then
         iptables-nft -V
         iptables-nft -L
+        iptables-nft -N DOCKER-ISOLATION-STAGE-1
+        iptables-nft -L
+        iptables-nft -I DOCKER-ISOLATION-STAGE-1 -j RETURN
     fi
     ;;
 *) ;;
