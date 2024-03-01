@@ -31,22 +31,32 @@ ARG KERNEL_BRANCH=5.10
 RUN git clone --depth 1 -c advice.detachedHead=false \
     --branch "v${KERNEL_BRANCH}" https://github.com/torvalds/linux.git .
 
-COPY vmlinux/*.patch ./
+COPY vmlinux/${KERNEL_BRANCH}/*.patch ./
 
 RUN git apply -v ./*.patch
 
 ###############################################
 
-FROM linux.git AS vmlinux
+FROM linux.git AS vmconfig-arm64
+ARG KERNEL_BRANCH=5.10
+COPY vmlinux/${KERNEL_BRANCH}/microvm-kernel-arm64-${KERNEL_BRANCH}.config ./.config
+FROM vmconfig-arm64 AS vmlinux-arm64
+RUN make Image && lz4 -9 ./arch/arm64/boot/Image ./vmlinux.bin.lz4
 
-COPY vmlinux/*.config ./
+###############################################
+FROM linux.git AS vmconfig-amd64
+ARG KERNEL_BRANCH=5.10
+COPY vmlinux/${KERNEL_BRANCH}/microvm-kernel-x86_64-${KERNEL_BRANCH}.config ./.config
+FROM vmconfig-amd64 AS vmlinux-amd64
+RUN make vmlinux && lz4 -9 ./vmlinux ./vmlinux.bin.lz4
 
-RUN if [ "$(uname -m)" = "aarch64" ] ; \
-    then ln -sf "microvm-kernel-arm64-5.10.config" .config && make Image && \
-    lz4 -9 ./arch/arm64/boot/Image ./vmlinux.bin.lz4 ; \
-    else ln -sf "microvm-kernel-x86_64-5.10.config" .config && make vmlinux &&\
-    lz4 -9 ./vmlinux ./vmlinux.bin.lz4 ; \
-    fi
+###############################################
+
+# hadolint ignore=DL3006
+FROM vmconfig-${TARGETARCH} AS vmconfig
+
+# hadolint ignore=DL3006
+FROM vmlinux-${TARGETARCH} AS vmlinux
 
 ###############################################
 

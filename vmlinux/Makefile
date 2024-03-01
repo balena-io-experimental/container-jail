@@ -1,27 +1,43 @@
 ARCH ?= $(shell uname -m)
+KERNEL_BRANCH ?= 5.10
+MAKEFILE_DIR := $(realpath $(shell dirname $(firstword $(MAKEFILE_LIST))))
 
+# normalize architecture to machine and platform
 ifeq ($(ARCH),x86_64)
-	CONFIG_FILE := microvm-kernel-x86_64-5.10.config
+	MACHINE := x86_64
 	PLATFORM := linux/amd64
 else
-	CONFIG_FILE := microvm-kernel-arm64-5.10.config
+	MACHINE := arm64
 	PLATFORM := linux/arm64
 endif
 
-linux.git:
-	docker build \
-		--platform $(PLATFORM) \
-		--tag linux.git \
-		--target linux.git ../
+TAG ?= linux.git:$(MACHINE)-$(KERNEL_BRANCH)
+CONFIG_FILE ?= $(KERNEL_BRANCH)/microvm-kernel-$(MACHINE)-$(KERNEL_BRANCH).config
 
-menuconfig: linux.git
+build:
+	docker build .. \
+		--platform $(PLATFORM) \
+		--target vmconfig \
+		--build-arg KERNEL_BRANCH=$(KERNEL_BRANCH) \
+		--build-arg ARCH=$(MACHINE) \
+		--tag $(TAG)
+
+run: build
+	mkdir -p out
 	docker run --rm -it \
 		--platform $(PLATFORM) \
-		--mount type=bind,src=$(shell pwd)/,dst=/config/ \
-		linux.git sh -c 'cp -a /config/$(CONFIG_FILE) .config && make menuconfig && cp -a .config /config/$(CONFIG_FILE)'
+		--mount type=bind,src=$(MAKEFILE_DIR)/out,dst=/out \
+		$(TAG) sh -c 'make $(TARGET) && cp .config /out/.config'
+	cp out/.config $(CONFIG_FILE)
 
-clean:  
-	docker rmi linux.git
-	rm .config
+menuconfig:
+	make run TARGET=$@
 
-.PHONY: clean menuconfig linux.git
+olddefconfig:
+	make run TARGET=$@
+
+clean:
+	-rm -rf out
+	-docker rm $(TAG)
+
+.PHONY: build run menuconfig olddefconfig clean
