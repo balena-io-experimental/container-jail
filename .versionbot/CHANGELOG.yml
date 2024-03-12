@@ -1,4 +1,30 @@
 - commits:
+    - subject: Add support for kernel 6.1
+      hash: cf2340ece06b4f18e625763568ccd3dc20823839
+      body: |
+        Default to 5.10 for now due to systemd in docker
+        compatibility issues.
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Kyle Harding <kyle@balena.io>
+        signed-off-by: Kyle Harding <kyle@balena.io>
+      author: Kyle Harding
+      nested: []
+    - subject: test creating new nftables chain and rule
+      hash: 5b9e20944b3fd20e544786d2a43342207b4fe8c6
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Kyle Harding <kyle@balena.io>
+        signed-off-by: Kyle Harding <kyle@balena.io>
+      author: Kyle Harding
+      nested: []
+  version: 0.0.40
+  title: ""
+  date: 2024-03-12T20:17:02.960Z
+- commits:
     - subject: Enable NFT_COMPAT in the kernel for nf_tables
       hash: 2677463ea2ee104aac59242807f4e957c45daa0b
       body: ""
