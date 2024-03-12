@@ -54,7 +54,6 @@ services:
       file: docker-compose.yml
       service: jailer
     build:
-      context: .
       args:
         TEST_IMAGE: alpine:3.18
       cache_from:
@@ -66,7 +65,6 @@ services:
       file: docker-compose.yml
       service: jailer
     build:
-      context: .
       args:
         TEST_IMAGE: debian:bookworm-slim
       cache_from:
@@ -78,7 +76,6 @@ services:
       file: docker-compose.yml
       service: jailer
     build:
-      context: .
       args:
         TEST_IMAGE: ubuntu:jammy
       cache_from:
